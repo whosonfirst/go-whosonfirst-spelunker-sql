@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/aaronland/go-pagination"
 	"github.com/aaronland/go-roster"
 	"github.com/whosonfirst/go-whosonfirst-placetypes"
 )
@@ -20,7 +21,7 @@ type SpelunkerInitializationFunc func(ctx context.Context, uri string) (Spelunke
 // Spelunker is an interface for writing data to multiple sources or targets.
 type Spelunker interface {
 	GetById(context.Context, int64) ([]byte, error)
-	GetDescendants(context.Context, int64) ([][]byte, error)
+	GetDescendants(context.Context, int64, pagination.Options) ([][]byte, pagination.Results, error)
 
 	Search(context.Context, *Query) ([][]byte, error)
 
