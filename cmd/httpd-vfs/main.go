@@ -2,15 +2,15 @@ package main
 
 import (
 	"context"
-	"log/slog"
 	"flag"
-	"os"
-	"net/http"
-	"net/url"
-	"path/filepath"
 	"github.com/psanford/sqlite3vfs"
 	"github.com/psanford/sqlite3vfshttp"
-	
+	"log/slog"
+	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
+
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd/app/server"
 	_ "github.com/whosonfirst/go-whosonfirst-spelunker-sql"
@@ -48,26 +48,22 @@ func main() {
 	ctx := context.Background()
 	logger := slog.Default()
 
-	opts := &server.RunOptions{
-		Logger: logger,
-	}
-	
 	fs := server.DefaultFlagSet()
 
-	opts, err := server.RunOptionsFromFlagSet(ctx, fs, logger)
+	opts, err := server.RunOptionsFromFlagSet(ctx, fs)
 
 	if err != nil {
 		logger.Error("Failed to derive run options", "error", err)
 		os.Exit(1)
 	}
-	
-	fs.VisitAll(func(fl *flag.Flag){
-		
+
+	fs.VisitAll(func(fl *flag.Flag) {
+
 		if fl.Name != "spelunker-uri" {
 			return
 		}
 
-		spelunker_uri := fl.Value.String()		
+		spelunker_uri := fl.Value.String()
 		u, err := url.Parse(spelunker_uri)
 
 		if err != nil {
@@ -84,9 +80,9 @@ func main() {
 		if !q.Has("vfs") {
 			return
 		}
-		
+
 		vfs_url := q.Get("vfs")
-		
+
 		vfs := sqlite3vfshttp.HttpVFS{
 			URL:          vfs_url,
 			RoundTripper: &roundTripper{
@@ -94,7 +90,7 @@ func main() {
 				// userAgent: *userAgent,
 			},
 		}
-		
+
 		err = sqlite3vfs.RegisterVFS("httpvfs", &vfs)
 
 		if err != nil {
@@ -105,16 +101,15 @@ func main() {
 		dsn := "not_a_real_name.db?vfs=httpvfs&mode=ro"
 		q.Set("dsn", dsn)
 		q.Del("vfs")
-		
+
 		u.RawQuery = q.Encode()
 		opts.SpelunkerURI = u.String()
 	})
 
-	err = server.RunWithOptions(ctx, opts)
+	err = server.RunWithOptions(ctx, opts, logger)
 
 	if err != nil {
 		slog.Error("Failed to run server", "error", err)
 		os.Exit(1)
 	}
 }
-

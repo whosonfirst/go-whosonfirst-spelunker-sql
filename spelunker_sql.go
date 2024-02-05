@@ -4,7 +4,7 @@ import (
 	"context"
 	db_sql "database/sql"
 	"fmt"
-	"log/slog"
+	_ "log/slog"
 	"net/url"
 
 	"github.com/aaronland/go-pagination"
@@ -26,8 +26,6 @@ func init() {
 
 func NewSQLSpelunker(ctx context.Context, uri string) (spelunker.Spelunker, error) {
 
-	slog.Info("NEW", "uri", uri)
-	
 	u, err := url.Parse(uri)
 
 	if err != nil {
@@ -40,7 +38,10 @@ func NewSQLSpelunker(ctx context.Context, uri string) (spelunker.Spelunker, erro
 
 	dsn := q.Get("dsn")
 
-	slog.Info("CONNECT", "engine", engine, "dsn", dsn)
+	if dsn == "" {
+		return nil, fmt.Errorf("Missing ?dsn= parameter")
+	}
+
 	db, err := db_sql.Open(engine, dsn)
 
 	if err != nil {
