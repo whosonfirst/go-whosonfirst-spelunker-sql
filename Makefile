@@ -2,10 +2,10 @@ CWD=$(shell pwd)
 
 GOMOD=$(shell test -f "go.work" && echo "readonly" || echo "vendor")
 
-SPELUNKER_URI=sql://sqlite3?dsn=file:/usr/local/data/us.db
+SPELUNKER_URI=sql://sqlite3?dsn=file:/usr/local/data/ca-search.db
 
-debug:
-	go run -mod $(GOMOD) cmd/httpd/main.go \
+server:
+	go run -mod $(GOMOD) -tags "icu json1 fts5" cmd/httpd/main.go \
 		-server-uri http://localhost:8080 \
 		-spelunker-uri $(SPELUNKER_URI)
 
@@ -20,3 +20,9 @@ get_descendants:
 		-spelunker-uri $(SPELUNKER_URI) \
 		-command descendants \
 		-id $(ID)
+
+search:
+	go run -mod $(GOMOD) -tags "icu json1 fts5" cmd/spelunker/main.go \
+		-spelunker-uri $(SPELUNKER_URI) \
+		-command search \
+		-query $(NAME)

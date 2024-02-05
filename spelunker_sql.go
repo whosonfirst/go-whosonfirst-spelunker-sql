@@ -73,6 +73,11 @@ func (s *SQLSpelunker) GetById(ctx context.Context, id int64) ([]byte, error) {
 func (s *SQLSpelunker) GetDescendants(ctx context.Context, id int64, pg_opts pagination.Options) (wof_spr.StandardPlacesResults, pagination.Results, error) {
 
 	where := "instr(belongsto, ?) > 0"
-
 	return s.querySPR(ctx, pg_opts, where, id)
+}
+
+func (s *SQLSpelunker) Search(ctx context.Context, search_opts *spelunker.SearchOptions, pg_opts pagination.Options) (wof_spr.StandardPlacesResults, pagination.Results, error) {
+
+	where := "names_all MATCH ?"
+	return s.querySearch(ctx, pg_opts, where, search_opts.Query)
 }

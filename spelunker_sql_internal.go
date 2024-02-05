@@ -3,8 +3,9 @@ package sql
 import (
 	"context"
 	"fmt"
-	_ "log/slog"
+	"log/slog"
 	"math"
+	"strconv"
 	"strings"
 
 	"github.com/aaronland/go-pagination"
@@ -73,12 +74,15 @@ func (s *SQLSpelunker) selectSPR(ctx context.Context, where string) string {
 
 func (s *SQLSpelunker) querySPR(ctx context.Context, pg_opts pagination.Options, where string, args ...interface{}) (wof_spr.StandardPlacesResults, pagination.Results, error) {
 
-	limit, offset := s.deriveLimitOffset(pg_opts)
-
-	where = fmt.Sprintf("%s LIMIT %d OFFSET %d", where, limit, offset)
+	if pg_opts != nil {
+		limit, offset := s.deriveLimitOffset(pg_opts)
+		where = fmt.Sprintf("%s LIMIT %d OFFSET %d", where, limit, offset)
+	}
 
 	pg_ch := make(chan pagination.Results)
 	results_ch := make(chan wof_spr.StandardPlacesResults)
+
+	done_ch := make(chan bool)
 	err_ch := make(chan error)
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -86,8 +90,11 @@ func (s *SQLSpelunker) querySPR(ctx context.Context, pg_opts pagination.Options,
 
 	go func() {
 
-		count_q := fmt.Sprintf("SELECT id FROM %s WHERE %s", tables.SPR_TABLE_NAME, where)
+		defer func() {
+			done_ch <- true
+		}()
 
+		count_q := fmt.Sprintf("SELECT id FROM %s WHERE %s", tables.SPR_TABLE_NAME, where)
 		count, err := s.queryCount(ctx, "id", count_q, args...)
 
 		if err != nil {
@@ -95,10 +102,17 @@ func (s *SQLSpelunker) querySPR(ctx context.Context, pg_opts pagination.Options,
 			return
 		}
 
-		pg_results, err := countable.NewResultsFromCountWithOptions(pg_opts, count)
+		var pg_results pagination.Results
+		var pg_err error
 
-		if err != nil {
-			err_ch <- fmt.Errorf("Failed to derive pagination results, %w", err)
+		if pg_opts != nil {
+			pg_results, pg_err = countable.NewResultsFromCountWithOptions(pg_opts, count)
+		} else {
+			pg_results, pg_err = countable.NewResultsFromCount(count)
+		}
+
+		if pg_err != nil {
+			err_ch <- fmt.Errorf("Failed to derive pagination results, %w", pg_err)
 			return
 		}
 
@@ -106,6 +120,10 @@ func (s *SQLSpelunker) querySPR(ctx context.Context, pg_opts pagination.Options,
 	}()
 
 	go func() {
+
+		defer func() {
+			done_ch <- true
+		}()
 
 		results_q := s.selectSPR(ctx, where)
 
@@ -158,15 +176,133 @@ func (s *SQLSpelunker) querySPR(ctx context.Context, pg_opts pagination.Options,
 
 	for remaining > 0 {
 		select {
+		case <-done_ch:
+			remaining -= 1
 		case r := <-pg_ch:
 			pg_results = r
-			remaining -= 1
 		case r := <-results_ch:
 			spr_results = r
-			remaining -= 1
 		case err := <-err_ch:
 			return nil, nil, err
 		}
+	}
+
+	return spr_results, pg_results, nil
+}
+
+func (s *SQLSpelunker) querySearch(ctx context.Context, pg_opts pagination.Options, where string, args ...interface{}) (wof_spr.StandardPlacesResults, pagination.Results, error) {
+
+	limit, offset := s.deriveLimitOffset(pg_opts)
+
+	where = fmt.Sprintf("%s LIMIT %d OFFSET %d", where, limit, offset)
+
+	pg_ch := make(chan pagination.Results)
+	id_ch := make(chan int64)
+
+	done_ch := make(chan bool)
+	err_ch := make(chan error)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() {
+
+		defer func() {
+			done_ch <- true
+		}()
+
+		count_q := fmt.Sprintf("SELECT id FROM %s WHERE %s", tables.SEARCH_TABLE_NAME, where)
+		count, err := s.queryCount(ctx, "id", count_q, args...)
+
+		if err != nil {
+			err_ch <- fmt.Errorf("Failed to derive query count, %w", err)
+			return
+		}
+
+		slog.Debug("SEARCH", "query", count_q, "count", count)
+
+		pg_results, err := countable.NewResultsFromCountWithOptions(pg_opts, count)
+
+		if err != nil {
+			err_ch <- fmt.Errorf("Failed to derive pagination results, %w", err)
+			return
+		}
+
+		pg_ch <- pg_results
+	}()
+
+	go func() {
+
+		defer func() {
+			done_ch <- true
+		}()
+
+		results_q := fmt.Sprintf("SELECT id FROM %s WHERE %s", tables.SEARCH_TABLE_NAME, where)
+		rows, err := s.db.QueryContext(ctx, results_q, args...)
+
+		if err != nil {
+			err_ch <- fmt.Errorf("Failed to query where '%s', %w", results_q, err)
+			return
+		}
+
+		for rows.Next() {
+
+			select {
+			case <-ctx.Done():
+				break
+			default:
+				// pass
+			}
+
+			for rows.Next() {
+
+				var id int64
+				err := rows.Scan(&id)
+
+				if err != nil {
+					err_ch <- fmt.Errorf("Failed to scan ID, %w", err)
+					return
+				}
+
+				id_ch <- id
+			}
+		}
+
+		err = rows.Close()
+
+		if err != nil {
+			err_ch <- fmt.Errorf("Failed to close results rows for descendants, %w", err)
+			return
+		}
+	}()
+
+	var pg_results pagination.Results
+	str_ids := make([]string, 0)
+
+	remaining := 2
+
+	for remaining > 0 {
+		select {
+		case <-done_ch:
+			remaining -= 1
+		case r := <-pg_ch:
+			pg_results = r
+		case id := <-id_ch:
+			str_id := strconv.FormatInt(id, 10)
+			str_ids = append(str_ids, str_id)
+		case err := <-err_ch:
+			return nil, nil, err
+		}
+	}
+
+	spr_where := fmt.Sprintf("id IN (%s)", strings.Join(str_ids, ","))
+
+	slog.Debug("SPR", "where", spr_where)
+
+	spr_results, _, err := s.querySPR(ctx, nil, spr_where)
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to retrieve SPR records, %w", err)
 	}
 
 	return spr_results, pg_results, nil
