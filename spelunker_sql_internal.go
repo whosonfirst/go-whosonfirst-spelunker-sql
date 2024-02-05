@@ -192,10 +192,13 @@ func (s *SQLSpelunker) querySPR(ctx context.Context, pg_opts pagination.Options,
 
 func (s *SQLSpelunker) querySearch(ctx context.Context, pg_opts pagination.Options, where string, args ...interface{}) (wof_spr.StandardPlacesResults, pagination.Results, error) {
 
-	limit, offset := s.deriveLimitOffset(pg_opts)
+	// https://www.sqlite.org/fts5.html
 
-	where = fmt.Sprintf("%s LIMIT %d OFFSET %d", where, limit, offset)
-
+	if pg_opts != nil {
+		limit, offset := s.deriveLimitOffset(pg_opts)
+		where = fmt.Sprintf("%s LIMIT %d OFFSET %d", where, limit, offset)
+	}
+	
 	pg_ch := make(chan pagination.Results)
 	id_ch := make(chan int64)
 
