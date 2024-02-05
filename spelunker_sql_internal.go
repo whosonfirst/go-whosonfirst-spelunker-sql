@@ -198,7 +198,7 @@ func (s *SQLSpelunker) querySearch(ctx context.Context, pg_opts pagination.Optio
 		limit, offset := s.deriveLimitOffset(pg_opts)
 		where = fmt.Sprintf("%s LIMIT %d OFFSET %d", where, limit, offset)
 	}
-	
+
 	pg_ch := make(chan pagination.Results)
 	id_ch := make(chan int64)
 

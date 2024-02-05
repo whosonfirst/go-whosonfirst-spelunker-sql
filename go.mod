@@ -5,6 +5,8 @@ go 1.21.3
 require (
 	github.com/aaronland/go-pagination v0.2.0
 	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/psanford/sqlite3vfs v0.0.0-20231201192653-4c99abef8114
+	github.com/psanford/sqlite3vfshttp v0.0.0-20230409054408-6eccb673c1d1
 	github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240204023256-592c5ef464db
 	github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240203235833-9c40e1509091
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.3
@@ -25,6 +27,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jtacoma/uritemplates v1.0.0 // indirect
 	github.com/paulmach/orb v0.7.1 // indirect
+	github.com/psanford/httpreadat v0.0.0-20230409005540-005e63deadeb // indirect
 	github.com/sfomuseum/go-edtf v1.1.1 // indirect
 	github.com/sfomuseum/go-flags v0.10.0 // indirect
 	github.com/tidwall/gjson v1.14.3 // indirect

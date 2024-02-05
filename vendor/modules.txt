@@ -49,6 +49,15 @@ github.com/mattn/go-sqlite3
 ## explicit; go 1.15
 github.com/paulmach/orb
 github.com/paulmach/orb/geojson
+# github.com/psanford/httpreadat v0.0.0-20230409005540-005e63deadeb
+## explicit; go 1.19
+github.com/psanford/httpreadat
+# github.com/psanford/sqlite3vfs v0.0.0-20231201192653-4c99abef8114
+## explicit; go 1.15
+github.com/psanford/sqlite3vfs
+# github.com/psanford/sqlite3vfshttp v0.0.0-20230409054408-6eccb673c1d1
+## explicit; go 1.15
+github.com/psanford/sqlite3vfshttp
 # github.com/sfomuseum/go-edtf v1.1.1
 ## explicit; go 1.12
 github.com/sfomuseum/go-edtf
