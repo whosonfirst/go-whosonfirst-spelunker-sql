@@ -15,7 +15,7 @@ func main() {
 	ctx := context.Background()
 	logger := slog.Default()
 
-	err := server.Run(ctx, logger)
+	err := server.RunWithFlagSet(ctx, logger)
 
 	if err != nil {
 		slog.Error("Failed to run server", "error", err)

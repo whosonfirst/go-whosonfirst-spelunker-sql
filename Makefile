@@ -9,6 +9,12 @@ server:
 		-server-uri http://localhost:8080 \
 		-spelunker-uri $(SPELUNKER_URI)
 
+		# -spelunker-uri $(SPELUNKER_URI) 
+server-vfs:
+	go run -mod $(GOMOD) -tags "icu json1 fts5" cmd/httpd-vfs/main.go \
+		-server-uri http://localhost:8080 \
+		-spelunker-uri 'sql://sqlite3?vfs=http://localhost:8082/test.db'
+
 get_id:
 	go run -mod $(GOMOD) cmd/spelunker/main.go \
 		-spelunker-uri $(SPELUNKER_URI) \

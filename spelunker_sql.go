@@ -4,12 +4,10 @@ import (
 	"context"
 	db_sql "database/sql"
 	"fmt"
-	_ "log/slog"
+	"log/slog"
 	"net/url"
 
 	"github.com/aaronland/go-pagination"
-	"github.com/psanford/sqlite3vfs"
-	"github.com/psanford/sqlite3vfshttp"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	wof_spr "github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"github.com/whosonfirst/go-whosonfirst-sql/tables"
@@ -28,6 +26,8 @@ func init() {
 
 func NewSQLSpelunker(ctx context.Context, uri string) (spelunker.Spelunker, error) {
 
+	slog.Info("NEW", "uri", uri)
+	
 	u, err := url.Parse(uri)
 
 	if err != nil {
@@ -40,29 +40,7 @@ func NewSQLSpelunker(ctx context.Context, uri string) (spelunker.Spelunker, erro
 
 	dsn := q.Get("dsn")
 
-	// https://github.com/psanford/sqlite3vfshttp/blob/main/sqlitehttpcli/sqlitehttpcli.go
-
-	if engine == "sqlite3" && q.Has("vfs") {
-
-		vfs_url := q.Get("vfs")
-
-		vfs := sqlite3vfshttp.HttpVFS{
-			URL:          vfs_url,
-			RoundTripper: &roundTripper{
-				// referer:   *referer,
-				// userAgent: *userAgent,
-			},
-		}
-
-		err := sqlite3vfs.RegisterVFS("httpvfs", &vfs)
-
-		if err != nil {
-			return nil, fmt.Errorf("Failed to register VFS, %w", err)
-		}
-
-		dsn = "not_a_real_name.db?vfs=httpvfs&mode=ro"
-	}
-
+	slog.Info("CONNECT", "engine", engine, "dsn", dsn)
 	db, err := db_sql.Open(engine, dsn)
 
 	if err != nil {
