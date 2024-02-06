@@ -16,6 +16,8 @@ import (
 	_ "github.com/whosonfirst/go-whosonfirst-spelunker-sql"
 )
 
+// https://github.com/psanford/sqlite3vfshttp/blob/main/sqlitehttpcli/sqlitehttpcli.go
+
 type roundTripper struct {
 	referer   string
 	userAgent string
@@ -43,7 +45,40 @@ func (rt *roundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	return tr.RoundTrip(req)
 }
 
-func ensureVFS(spelunker_uri string) (bool, string, error) {
+func main() {
+
+	ctx := context.Background()
+	logger := slog.Default()
+
+	fs := server.DefaultFlagSet()
+
+	opts, err := server.RunOptionsFromFlagSet(ctx, fs)
+
+	if err != nil {
+		logger.Error("Failed to derive run options", "error", err)
+		os.Exit(1)
+	}
+
+	is_vfs, vfs_uri, err := checkVFS(opts.SpelunkerURI)
+
+	if err != nil {
+		logger.Error("Failed to parse spelunker URI", "error", err)
+		os.Exit(1)
+	}
+
+	if is_vfs {
+		opts.SpelunkerURI = vfs_uri
+	}
+
+	err = server.RunWithOptions(ctx, opts, logger)
+
+	if err != nil {
+		slog.Error("Failed to run server", "error", err)
+		os.Exit(1)
+	}
+}
+
+func checkVFS(spelunker_uri string) (bool, string, error) {
 
 	u, err := url.Parse(spelunker_uri)
 
@@ -64,10 +99,10 @@ func ensureVFS(spelunker_uri string) (bool, string, error) {
 	vfs_url := q.Get("vfs")
 
 	vfs := sqlite3vfshttp.HttpVFS{
-		URL:          vfs_url,
+		URL: vfs_url,
 		RoundTripper: &roundTripper{
-			// referer:   *referer,
-			// userAgent: *userAgent,
+			referer:   q.Get("vfs-referer"),
+			userAgent: q.Get("vfs-user-agent"),
 		},
 	}
 
@@ -77,44 +112,11 @@ func ensureVFS(spelunker_uri string) (bool, string, error) {
 		return false, spelunker_uri, fmt.Errorf("Failed to register VFS", "error", err)
 	}
 
-	dsn := "not_a_real_name.db?vfs=httpvfs&mode=ro"
+	dsn := "spelunker.db?vfs=httpvfs&mode=ro"
 	q.Set("dsn", dsn)
 	q.Del("vfs")
 
 	u.RawQuery = q.Encode()
 
 	return true, u.String(), nil
-}
-
-func main() {
-
-	ctx := context.Background()
-	logger := slog.Default()
-
-	fs := server.DefaultFlagSet()
-
-	opts, err := server.RunOptionsFromFlagSet(ctx, fs)
-
-	if err != nil {
-		logger.Error("Failed to derive run options", "error", err)
-		os.Exit(1)
-	}
-
-	changed, vfs_uri, err := ensureVFS(opts.SpelunkerURI)
-
-	if err != nil {
-		logger.Error("Failed to parse spelunker URI", "error", err)
-		os.Exit(1)
-	}
-
-	if changed {
-		opts.SpelunkerURI = vfs_uri
-	}
-
-	err = server.RunWithOptions(ctx, opts, logger)
-
-	if err != nil {
-		slog.Error("Failed to run server", "error", err)
-		os.Exit(1)
-	}
 }
