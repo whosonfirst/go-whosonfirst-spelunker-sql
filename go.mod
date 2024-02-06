@@ -1,6 +1,6 @@
 module github.com/whosonfirst/go-whosonfirst-spelunker-sql
 
-go 1.21.3
+go 1.22
 
 require (
 	github.com/aaronland/go-pagination v0.2.0
