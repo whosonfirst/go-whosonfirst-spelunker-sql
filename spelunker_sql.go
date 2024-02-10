@@ -82,6 +82,25 @@ func (s *SQLSpelunker) GetDescendants(ctx context.Context, id int64, pg_opts pag
 	return s.querySPR(ctx, pg_opts, where, id)
 }
 
+func (s *SQLSpelunker) CountDescendants(ctx context.Context, id int64) (int64, error) {
+
+	var count int64
+	
+	q := fmt.Sprintf("SELECT COUNT(id) FROM %s WHERE instr(belongsto, ?)", tables.SPR_TABLE_NAME)
+
+	row := s.db.QueryRowContext(ctx, q, id)
+	err := row.Scan(&count)
+
+	switch {
+	case err == db_sql.ErrNoRows:
+		return 0, spelunker.ErrNotFound		
+	case err != nil:
+		return 0, fmt.Errorf("Failed to execute count descendants query for %d, %w", id, err)
+	default:
+		return count, nil
+	}
+}
+
 func (s *SQLSpelunker) Search(ctx context.Context, search_opts *spelunker.SearchOptions, pg_opts pagination.Options) (wof_spr.StandardPlacesResults, pagination.Results, error) {
 
 	where := "names_all MATCH ?"
