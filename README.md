@@ -6,6 +6,10 @@ Go package implementing the `whosonfirst/go-whosonfirst-spelunker.Spelunker` int
 
 Documentation is incompete at this time. For starters consult the (also incomplete) documentation in the [whosonfirst/go-whosonfirst-spelunker](https://github.com/whosonfirst/go-whosonfirst-spelunker) package.
 
+## Important
+
+This is work in progress and you should expect things to change, break or simply not work yet.
+
 ## Indexing
 
 For example:
@@ -21,6 +25,9 @@ $> ./bin/wof-sqlite-index-features-mattn \
 	-concordances \	
 	-index-alt-files \
 	/usr/local/data/whosonfirst-data-admin-ca
+
+$> du -h /usr/local/data/ca-search.db
+1.4G	/usr/local/data/ca-search.db
 ```
 
 ## Tools

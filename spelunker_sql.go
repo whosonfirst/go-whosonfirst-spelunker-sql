@@ -4,7 +4,7 @@ import (
 	"context"
 	db_sql "database/sql"
 	"fmt"
-	"log/slog"
+	_ "log/slog"
 	"net/url"
 
 	"github.com/aaronland/go-pagination"
@@ -79,8 +79,6 @@ func (s *SQLSpelunker) getById(ctx context.Context, q string, args ...interface{
 
 	var body []byte
 
-	slog.Info("ID", "query", q, "args", args)
-	
 	rsp := s.db.QueryRowContext(ctx, q, args...)
 
 	err := rsp.Scan(&body)
