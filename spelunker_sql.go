@@ -4,13 +4,14 @@ import (
 	"context"
 	db_sql "database/sql"
 	"fmt"
-	_ "log/slog"
+	"log/slog"
 	"net/url"
 
 	"github.com/aaronland/go-pagination"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	wof_spr "github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"github.com/whosonfirst/go-whosonfirst-sql/tables"
+	"github.com/whosonfirst/go-whosonfirst-uri"	
 )
 
 type SQLSpelunker struct {
@@ -58,11 +59,29 @@ func NewSQLSpelunker(ctx context.Context, uri string) (spelunker.Spelunker, erro
 
 func (s *SQLSpelunker) GetById(ctx context.Context, id int64) ([]byte, error) {
 
+	q := fmt.Sprintf("SELECT body FROM %s WHERE id = ?", tables.GEOJSON_TABLE_NAME)
+	return s.getById(ctx, q, id)
+}
+
+func (s *SQLSpelunker) GetAlternateGeometryById(ctx context.Context, id int64, alt_geom *uri.AltGeom) ([]byte, error) {
+
+	alt_label, err := alt_geom.String()
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to derive label from alt geom, %w", err)
+	}
+	
+	q := fmt.Sprintf("SELECT body FROM %s WHERE id = ? AND alt_label = ?", tables.GEOJSON_TABLE_NAME)
+	return s.getById(ctx, q, id, alt_label)
+}
+
+func (s *SQLSpelunker) getById(ctx context.Context, q string, args ...interface{}) ([]byte, error) {
+
 	var body []byte
 
-	q := fmt.Sprintf("SELECT body FROM %s WHERE id = ?", tables.GEOJSON_TABLE_NAME)
-
-	rsp := s.db.QueryRowContext(ctx, q, id)
+	slog.Info("ID", "query", q, "args", args)
+	
+	rsp := s.db.QueryRowContext(ctx, q, args...)
 
 	err := rsp.Scan(&body)
 
@@ -70,7 +89,7 @@ func (s *SQLSpelunker) GetById(ctx context.Context, id int64) ([]byte, error) {
 	case err == db_sql.ErrNoRows:
 		return nil, spelunker.ErrNotFound
 	case err != nil:
-		return nil, fmt.Errorf("Failed to execute get by id query for %d, %w", id, err)
+		return nil, fmt.Errorf("Failed to execute get by id query, %w", err)
 	default:
 		return body, nil
 	}
