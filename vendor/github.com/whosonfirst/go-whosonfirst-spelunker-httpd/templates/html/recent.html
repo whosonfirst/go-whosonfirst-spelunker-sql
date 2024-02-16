@@ -1,0 +1,9 @@
+{{ define "recent" -}}
+{{ template "inc_head" . -}}
+
+{{ template "inc_places" . -}}
+
+{{ template "inc_foot" . -}}
+
+<script type="text/javascript" src="{{ .URIs.Static }}javascript/whosonfirst.spelunker.places.init.js"></script>
+{{ end -}}

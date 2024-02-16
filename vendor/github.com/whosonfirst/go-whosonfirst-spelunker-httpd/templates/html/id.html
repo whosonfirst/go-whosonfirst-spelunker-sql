@@ -1,0 +1,61 @@
+{{ define "id" -}}
+{{ template "inc_head" . -}}
+
+<h2>
+    {{ GjsonGet .Properties "wof:name" }}
+    <small class="rel-path">{{ .RelPath }}</small>
+</h2>
+
+<div id="map-wrapper">
+    {{ if (IsAvailable "URIs" .) }}<img src="{{ .URIs.SVG }}/{{ .Id }}" id="map-svg" loading="lazy" />{{ end }}
+    <div id="map" data-wof-id="{{ .Id }}"></div>
+    <p>{{ GjsonGet .Properties "wof:name" }} is a <span class="hey-look">{{ GjsonGet .Properties "wof:placetype" }}</span> and its consensus geometry is derived from <span class="hey-look">{{ GjsonGet .Properties "src:geom" }}</span>.</p>
+</div>
+
+<div id="whosonfirst-alt-geoms">
+{{/* This is populated by whosonfirst.spelunker.id.init.js */}}
+</div>
+
+<div class="whosonfirst-record">
+    <div id="whosonfirst-record-properties">
+	<h3>Properties
+
+	    <div id="props-toggle" class="pull-right">
+		<button class="btn btn-sm" id="props-toggle-raw">view raw</button>
+		<button class="btn btn-sm" id="props-toggle-pretty">make pretty</button>
+	    </div>
+	</h3>
+	<div id="props-wrapper" class="table-responsive">
+	<whosonfirst-properties>
+	    <pre id="whosonfirst-properties">{{ .Properties }}</pre>
+	</whosonfirst-properties>
+	</div>
+    </div>
+    <div id="whosonfirst-record-other">
+	<h3>Hierarchy</h3>
+	{{ range $i, $hier := .Hierarchies -}}	
+	<ul>
+	    {{ range $j, $a := $hier -}}  
+	    <li>the <span class="hey-look">{{ $a.Placetype }}</span> of <a href="{{ $.URIs.Id }}/{{ $a.Id }}" class="wof-namify" data-wof-id="{{ $a.Id }}">{{ $a.Id }}</a></li>
+	    {{ end -}}
+	</ul>
+	{{ end -}}
+	
+	<h3>Other</h3>
+	<ul>
+	    {{ if eq .CountDescendants 0 -}}
+	    <li>This record has no descendants</li>
+	    {{ else -}}
+            <li><a href="{{ .URIs.Descendants }}{{ .Id }}">See all the descendants of {{ GjsonGet .Properties "wof:name" }}</a></li>
+	    {{ end -}}
+	    <li><a href="{{ .URIs.GeoJSON }}{{ .Id }}">Raw data (GeoJSON)</a></li>
+	    <li><a href="{{ .GitHubURL }}" target="github">View on GitHub</a></li>
+	    <li id="writefield-link"><a href="https://writefield.nextzen.org/place/edit?url={{ .WriteFieldURL }}" target="writefield">Edit in Write Field</a></li>
+	</ul>
+    </div>
+</div>
+
+{{ template "inc_foot" . -}}
+
+<script type="text/javascript" src="{{ .URIs.Static }}javascript/whosonfirst.spelunker.id.init.js"></script>
+{{ end -}}

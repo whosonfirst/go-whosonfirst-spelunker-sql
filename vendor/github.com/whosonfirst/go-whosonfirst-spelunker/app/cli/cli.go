@@ -32,6 +32,8 @@ func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) 
 		return get_descendants(ctx, sp)
 	case "id":
 		return get_by_id(ctx, sp)
+	case "search":
+		return search(ctx, sp)
 	default:
 		return fmt.Errorf("Invalid or unsupported command")
 	}

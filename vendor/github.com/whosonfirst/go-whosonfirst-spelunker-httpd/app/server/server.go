@@ -9,8 +9,6 @@ import (
 
 	"github.com/aaronland/go-http-server"
 	"github.com/aaronland/go-http-server/handler"
-	"github.com/sfomuseum/go-flags/flagset"
-	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd"
 )
 
 func Run(ctx context.Context, logger *slog.Logger) error {
@@ -20,36 +18,106 @@ func Run(ctx context.Context, logger *slog.Logger) error {
 
 func RunWithFlagSet(ctx context.Context, fs *flag.FlagSet, logger *slog.Logger) error {
 
-	flagset.Parse(fs)
+	opts, err := RunOptionsFromFlagSet(ctx, fs)
+
+	if err != nil {
+		return fmt.Errorf("Failed to derive run options from flagset, %w", err)
+	}
+
+	return RunWithOptions(ctx, opts, logger)
+}
+
+func RunWithOptions(ctx context.Context, opts *RunOptions, logger *slog.Logger) error {
 
 	slog.SetDefault(logger)
 
-	uris_table = &httpd.URIs{
-		Id:      "/id/",
-		GeoJSON: "/geojson",
-	}
+	// First create a local copy of RunOptions that can't be
+	// modified after the fact. 'run_options' is defined in vars.go
 
-	handlers := map[string]handler.RouteHandlerFunc{
-		uris_table.GeoJSON: geoJSONHandlerFunc,
-	}
-
-	route_handler, err := handler.RouteHandler(handlers)
+	v, err := opts.Clone()
 
 	if err != nil {
-		return fmt.Errorf("Failed to create route handlers, %w", err)
+		return fmt.Errorf("Failed to create local run options, %w", err)
+	}
+
+	run_options = v
+
+	// To do: Add/consult "is enabled" flags
+
+	// START OF defer loading handlers (and all their dependencies) until they are actually routed to
+	// in case we are running in a "serverless" environment like AWS Lambda
+	
+	handlers := map[string]handler.RouteHandlerFunc{
+
+		// WWW/human-readable
+		run_options.URIs.Recent: recentHandlerFunc,		
+		run_options.URIs.Descendants: descendantsHandlerFunc,
+		run_options.URIs.Id:          idHandlerFunc,
+		run_options.URIs.Search:      searchHandlerFunc,
+		run_options.URIs.About:       aboutHandlerFunc,
+		run_options.URIs.Index:       indexHandlerFunc,		
+
+		// Static assets
+		run_options.URIs.Static: staticHandlerFunc,
+
+		// API/machine-readable
+		run_options.URIs.GeoJSON:   geoJSONHandlerFunc,
+		run_options.URIs.GeoJSONLD: geoJSONLDHandlerFunc,
+		run_options.URIs.NavPlace:  navPlaceHandlerFunc,
+		run_options.URIs.Select:    selectHandlerFunc,
+		run_options.URIs.SPR:       sprHandlerFunc,
+		run_options.URIs.SVG:       svgHandlerFunc,
+	}
+
+	assign_handlers := func(handler_map map[string]handler.RouteHandlerFunc, paths []string, handler_func handler.RouteHandlerFunc) {
+
+		for _, p := range paths {
+			handler_map[p] = handler_func
+		}
+	}
+
+	assign_handlers(handlers, run_options.URIs.IdAlt, idHandlerFunc)
+	assign_handlers(handlers, run_options.URIs.DescendantsAlt, descendantsHandlerFunc)
+
+	// API/machine-readable
+	assign_handlers(handlers, run_options.URIs.GeoJSONAlt, geoJSONHandlerFunc)
+	assign_handlers(handlers, run_options.URIs.GeoJSONLDAlt, geoJSONLDHandlerFunc)
+	assign_handlers(handlers, run_options.URIs.NavPlaceAlt, navPlaceHandlerFunc)
+	assign_handlers(handlers, run_options.URIs.SelectAlt, selectHandlerFunc)
+	assign_handlers(handlers, run_options.URIs.SPRAlt, sprHandlerFunc)
+	assign_handlers(handlers, run_options.URIs.SVGAlt, svgHandlerFunc)
+
+	log_logger := slog.NewLogLogger(logger.Handler(), slog.LevelInfo)
+
+	route_handler_opts := &handler.RouteHandlerOptions{
+		Handlers: handlers,
+		Logger:   log_logger,
+	}
+
+	route_handler, err := handler.RouteHandlerWithOptions(route_handler_opts)
+
+	if err != nil {
+		return fmt.Errorf("Failed to configure route handler, %w", err)
 	}
 
 	mux := http.NewServeMux()
 	mux.Handle("/", route_handler)
 
-	s, err := server.NewServer(ctx, server_uri)
+	// END OF defer loading handlers (and all their dependencies) until they are actually routed to
+	
+	s, err := server.NewServer(ctx, run_options.ServerURI)
 
 	if err != nil {
 		return fmt.Errorf("Failed to create new server, %w", err)
 	}
 
-	logger.Info("Listening for requests", "address", s.Address())
+	go func() {
+		for uri, h := range handlers {
+			slog.Debug("Enable handler", "uri", uri, "handler", fmt.Sprintf("%T", h))
+		}
+	}()
 
+	slog.Info("Listening for requests", "address", s.Address())
 	err = s.ListenAndServe(ctx, mux)
 
 	if err != nil {

@@ -1,0 +1,27 @@
+{{ define "inc_pagination" -}}
+{{ if (IsAvailable "Pagination" $) -}}
+{{ if gt $.Pagination.Pages 1 }}
+
+<div id="pagination" class="pagination">
+    <span id="pagination-previous" class="pagination-element hey-look">
+	{{ if eq $.Pagination.Pages 1 }}
+	&#8212;
+	{{ else }}
+	<a href="{{ $.PaginationURL }}&page={{ $.Pagination.Previous }}">previous</a>
+	{{ end }}
+    </span>
+    <span id="pagination-current" class="pagination-element">    
+	page {{ $.Pagination.Page }} of {{ $.Pagination.Pages }}
+    </span>
+    <span id="pagination-next" class="pagination-element hey-look">
+	{{ if eq $.Pagination.Page $.Pagination.Pages }}
+	&#8212;
+	{{ else }}
+	<a href="{{ $.PaginationURL }}&page={{ $.Pagination.Next }}">next</a>
+	{{ end }}	
+    </span>
+</div>
+
+{{ end -}}
+{{ end -}}
+{{ end -}}

@@ -1,0 +1,35 @@
+{{ define "inc_navi" }}
+<div id="nav" class="container">
+
+    <ul class="list-inline pull-left" id="nav-links">
+      <li><a href="/">who's on first</a> <span class="hey-look">spelunker</span></li>
+    </ul>
+
+    <div id="search" class="pull-right">
+      <form method="GET" action="{{ $.URIs.Search }}" class="form-inline pull-right" role="form" style="margin-bottom:.75em;">
+
+	<div class="input-group">
+	  <input type="text" class="form-control" aria-label="..." name="q" id="q" placeholder="Search for a place" value="">
+	  <div class="input-group-btn">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Search <span class="caret"></span></button>
+            <ul class="dropdown-menu">
+	      <li><a href="#" onclick="var q=document.getElementById('q');q=q.value;location.href='{{ $.URIs.Search }}?q='+encodeURIComponent(q);return false;">all the things</a></li>
+	      <li><a href="#" onclick="var q=document.getElementById('q');q=q.value;location.href='{{ $.URIs.Search }}?name='+encodeURIComponent(q);return false;">default name</a></li>
+	      <li><a href="#" onclick="var q=document.getElementById('q');q=q.value;location.href='{{ $.URIs.Search }}?preferred='+encodeURIComponent(q);return false;">preferred names</a></li>
+	      <li><a href="#" onclick="var q=document.getElementById('q');q=q.value;location.href='{{ $.URIs.Search }}?alt='+encodeURIComponent(q);return false;">variant names</a></li>
+	      <li><a href="#" onclick="var q=document.getElementById('q');q=q.value;location.href='{{ $.URIs.Search }}?names='+encodeURIComponent(q);return false;">all the names</a></li>
+            </ul>
+	  </div><!-- /btn-group -->
+	</div><!-- /input-group -->
+
+	
+
+      </form>
+    </div>
+
+          <div>
+      <small class="italic pull-right not-a-geocoder">remember — this is a simple full-text search tool and <span class="hey-look">not</span> an <a href="https://geocode.earth/">actual geocoder</a></small>
+      </div>
+
+</div>
+{{ end }}

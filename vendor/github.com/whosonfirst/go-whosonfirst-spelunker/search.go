@@ -1,4 +1,5 @@
 package spelunker
 
-type Query struct {
+type SearchOptions struct {
+	Query string `json:"query"`
 }
