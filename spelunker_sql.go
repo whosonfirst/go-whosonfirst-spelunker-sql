@@ -6,13 +6,14 @@ import (
 	"fmt"
 	_ "log/slog"
 	"net/url"
+	"strings"
 	"time"
-	
+
 	"github.com/aaronland/go-pagination"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	wof_spr "github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"github.com/whosonfirst/go-whosonfirst-sql/tables"
-	"github.com/whosonfirst/go-whosonfirst-uri"	
+	"github.com/whosonfirst/go-whosonfirst-uri"
 )
 
 type SQLSpelunker struct {
@@ -71,7 +72,7 @@ func (s *SQLSpelunker) GetAlternateGeometryById(ctx context.Context, id int64, a
 	if err != nil {
 		return nil, fmt.Errorf("Failed to derive label from alt geom, %w", err)
 	}
-	
+
 	q := fmt.Sprintf("SELECT body FROM %s WHERE id = ? AND alt_label = ?", tables.GEOJSON_TABLE_NAME)
 	return s.getById(ctx, q, id, alt_label)
 }
@@ -103,7 +104,7 @@ func (s *SQLSpelunker) GetDescendants(ctx context.Context, pg_opts pagination.Op
 func (s *SQLSpelunker) CountDescendants(ctx context.Context, id int64) (int64, error) {
 
 	var count int64
-	
+
 	q := fmt.Sprintf("SELECT COUNT(id) FROM %s WHERE instr(belongsto, ?)", tables.SPR_TABLE_NAME)
 
 	row := s.db.QueryRowContext(ctx, q, id)
@@ -111,7 +112,7 @@ func (s *SQLSpelunker) CountDescendants(ctx context.Context, id int64) (int64, e
 
 	switch {
 	case err == db_sql.ErrNoRows:
-		return 0, spelunker.ErrNotFound		
+		return 0, spelunker.ErrNotFound
 	case err != nil:
 		return 0, fmt.Errorf("Failed to execute count descendants query for %d, %w", id, err)
 	default:
@@ -129,8 +130,90 @@ func (s *SQLSpelunker) GetRecent(ctx context.Context, pg_opts pagination.Options
 
 	now := time.Now()
 	then := now.Unix() - int64(d.Seconds())
-	
+
 	where := "lastmodified >= ? ORDER BY lastmodified DESC"
-	return s.querySPR(ctx, pg_opts, where, then)	
+	return s.querySPR(ctx, pg_opts, where, then)
 }
 
+func (s *SQLSpelunker) GetPlacetypes(ctx context.Context) ([]*spelunker.Facet, error) {
+
+	facets := make([]*spelunker.Facet, 0)
+
+	q := fmt.Sprintf("SELECT placetype, COUNT(id) AS count FROM %s GROUP BY placetype ORDER BY count DESC", tables.SPR_TABLE_NAME)
+
+	rows, err := s.db.QueryContext(ctx, q)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to execute query, %w", err)
+	}
+
+	for rows.Next() {
+
+		var pt string
+		var count int64
+
+		err := rows.Scan(&pt, &count)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to scan row, %w", err)
+		}
+
+		f := &spelunker.Facet{
+			Key:   pt,
+			Count: count,
+		}
+
+		facets = append(facets, f)
+	}
+
+	err = rows.Close()
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to close results rows, %w", err)
+	}
+
+	return facets, nil
+}
+
+func (s *SQLSpelunker) GetConcordances(ctx context.Context) ([]*spelunker.Facet, error) {
+
+	facets := make([]*spelunker.Facet, 0)
+
+	q := fmt.Sprintf("SELECT other_source, COUNT(other_id) AS count FROM %s GROUP BY other_source ORDER BY count DESC", tables.CONCORDANCES_TABLE_NAME)
+
+	rows, err := s.db.QueryContext(ctx, q)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to execute query, %w", err)
+	}
+
+	for rows.Next() {
+
+		var source string
+		var count int64
+
+		err := rows.Scan(&source, &count)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to scan row, %w", err)
+		}
+
+		nspred := strings.Split(source, ":")
+		ns := nspred[0]
+
+		f := &spelunker.Facet{
+			Key:   ns,
+			Count: count,
+		}
+
+		facets = append(facets, f)
+	}
+
+	err = rows.Close()
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to close results rows, %w", err)
+	}
+
+	return facets, nil
+}
