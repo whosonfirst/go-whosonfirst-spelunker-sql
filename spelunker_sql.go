@@ -97,8 +97,32 @@ func (s *SQLSpelunker) getById(ctx context.Context, q string, args ...interface{
 
 func (s *SQLSpelunker) GetDescendants(ctx context.Context, pg_opts pagination.Options, id int64, filters ...spelunker.Filter) (wof_spr.StandardPlacesResults, pagination.Results, error) {
 
-	where := "instr(belongsto, ?) > 0"
-	return s.querySPR(ctx, pg_opts, where, id)
+	where := []string{
+		"instr(belongsto, ?) > 0",
+	}
+	
+	args := []interface{}{
+		id,
+	}
+
+	for _, f := range filters {
+
+		switch f.Scheme() {
+		case spelunker.COUNTRY_FILTER_SCHEME:
+			where = append(where, "country = ?")
+			args = append(args, f.Value())
+		case spelunker.PLACETYPE_FILTER_SCHEME:
+			where = append(where, "placetype = ?")
+			args = append(args, f.Value())
+		default:
+			return nil, nil, fmt.Errorf("Invalid or unsupported filter scheme, %s", f.Scheme())
+		}
+		
+	}
+
+	str_where := strings.Join(where, " AND ")
+	
+	return s.querySPR(ctx, pg_opts, str_where, args...)
 }
 
 func (s *SQLSpelunker) CountDescendants(ctx context.Context, id int64) (int64, error) {
