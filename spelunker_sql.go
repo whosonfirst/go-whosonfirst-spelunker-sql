@@ -95,7 +95,7 @@ func (s *SQLSpelunker) getById(ctx context.Context, q string, args ...interface{
 	}
 }
 
-func (s *SQLSpelunker) GetDescendants(ctx context.Context, pg_opts pagination.Options, id int64, filters ...spelunker.Filter) (wof_spr.StandardPlacesResults, pagination.Results, error) {
+func (s *SQLSpelunker) GetDescendants(ctx context.Context, pg_opts pagination.Options, id int64, filters []spelunker.Filter) (wof_spr.StandardPlacesResults, pagination.Results, error) {
 
 	where := []string{
 		"instr(belongsto, ?) > 0",
@@ -125,7 +125,7 @@ func (s *SQLSpelunker) GetDescendants(ctx context.Context, pg_opts pagination.Op
 	return s.querySPR(ctx, pg_opts, str_where, args...)
 }
 
-func (s *SQLSpelunker) FacetDescendants(ctx context.Context, facet string, id int64, filters ...spelunker.Filter) ([]*spelunker.Facet, error) {
+func (s *SQLSpelunker) FacetDescendants(ctx context.Context, id int64, filters []spelunker.Filter, facets []*spelunker.Facet) ([]*spelunker.Faceting, error) {
 
 	where := []string{
 		"instr(belongsto, ?) > 0",
@@ -152,7 +152,26 @@ func (s *SQLSpelunker) FacetDescendants(ctx context.Context, facet string, id in
 
 	str_where := strings.Join(where, " AND ")
 
-	return s.facetSPR(ctx, facet, str_where, args...)
+	// START OF do this in go routines
+
+	f := facets[0]
+
+	counts, err := s.facetSPR(ctx, f, str_where, args...)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to derive facets for %s, %w", f, err)
+	}
+
+	results := []*spelunker.Faceting{
+		&spelunker.Faceting{
+			Facet:   f,
+			Results: counts,
+		},
+	}
+
+	// END OF do this in go routines
+
+	return results, nil
 }
 
 func (s *SQLSpelunker) CountDescendants(ctx context.Context, id int64) (int64, error) {
@@ -180,7 +199,7 @@ func (s *SQLSpelunker) Search(ctx context.Context, pg_opts pagination.Options, s
 	return s.querySearch(ctx, pg_opts, where, search_opts.Query)
 }
 
-func (s *SQLSpelunker) GetRecent(ctx context.Context, pg_opts pagination.Options, d time.Duration, filters ...spelunker.Filter) (wof_spr.StandardPlacesResults, pagination.Results, error) {
+func (s *SQLSpelunker) GetRecent(ctx context.Context, pg_opts pagination.Options, d time.Duration, filters []spelunker.Filter) (wof_spr.StandardPlacesResults, pagination.Results, error) {
 
 	now := time.Now()
 	then := now.Unix() - int64(d.Seconds())
@@ -189,9 +208,9 @@ func (s *SQLSpelunker) GetRecent(ctx context.Context, pg_opts pagination.Options
 	return s.querySPR(ctx, pg_opts, where, then)
 }
 
-func (s *SQLSpelunker) GetPlacetypes(ctx context.Context) ([]*spelunker.Facet, error) {
+func (s *SQLSpelunker) GetPlacetypes(ctx context.Context) (*spelunker.Faceting, error) {
 
-	facets := make([]*spelunker.Facet, 0)
+	facet_counts := make([]*spelunker.FacetCount, 0)
 
 	q := fmt.Sprintf("SELECT placetype, COUNT(id) AS count FROM %s GROUP BY placetype ORDER BY count DESC", tables.SPR_TABLE_NAME)
 
@@ -212,12 +231,12 @@ func (s *SQLSpelunker) GetPlacetypes(ctx context.Context) ([]*spelunker.Facet, e
 			return nil, fmt.Errorf("Failed to scan row, %w", err)
 		}
 
-		f := &spelunker.Facet{
+		f := &spelunker.FacetCount{
 			Key:   pt,
 			Count: count,
 		}
 
-		facets = append(facets, f)
+		facet_counts = append(facet_counts, f)
 	}
 
 	err = rows.Close()
@@ -226,12 +245,19 @@ func (s *SQLSpelunker) GetPlacetypes(ctx context.Context) ([]*spelunker.Facet, e
 		return nil, fmt.Errorf("Failed to close results rows, %w", err)
 	}
 
-	return facets, nil
+	f := spelunker.NewFacet("placetype")
+
+	faceting := &spelunker.Faceting{
+		Facet:   f,
+		Results: facet_counts,
+	}
+
+	return faceting, nil
 }
 
-func (s *SQLSpelunker) GetConcordances(ctx context.Context) ([]*spelunker.Facet, error) {
+func (s *SQLSpelunker) GetConcordances(ctx context.Context) (*spelunker.Faceting, error) {
 
-	facets := make([]*spelunker.Facet, 0)
+	facet_counts := make([]*spelunker.FacetCount, 0)
 
 	q := fmt.Sprintf("SELECT other_source, COUNT(other_id) AS count FROM %s GROUP BY other_source ORDER BY count DESC", tables.CONCORDANCES_TABLE_NAME)
 
@@ -255,12 +281,12 @@ func (s *SQLSpelunker) GetConcordances(ctx context.Context) ([]*spelunker.Facet,
 		nspred := strings.Split(source, ":")
 		ns := nspred[0]
 
-		f := &spelunker.Facet{
+		f := &spelunker.FacetCount{
 			Key:   ns,
 			Count: count,
 		}
 
-		facets = append(facets, f)
+		facet_counts = append(facet_counts, f)
 	}
 
 	err = rows.Close()
@@ -269,5 +295,12 @@ func (s *SQLSpelunker) GetConcordances(ctx context.Context) ([]*spelunker.Facet,
 		return nil, fmt.Errorf("Failed to close results rows, %w", err)
 	}
 
-	return facets, nil
+	f := spelunker.NewFacet("concordance")
+
+	faceting := &spelunker.Faceting{
+		Facet:   f,
+		Results: facet_counts,
+	}
+
+	return faceting, nil
 }
