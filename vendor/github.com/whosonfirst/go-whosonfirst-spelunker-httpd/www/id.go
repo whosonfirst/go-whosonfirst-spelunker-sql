@@ -38,7 +38,7 @@ type IdHandlerVars struct {
 	Properties       string
 	CountDescendants int64
 	Hierarchies      [][]*IdHandlerAncestor
-	RelPath string
+	RelPath          string
 	GitHubURL        string
 	WriteFieldURL    string
 }
@@ -87,8 +87,8 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		logger = logger.With("request id", req_id)
 		logger = logger.With("wof id", wof_id)
 
-		f, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)		
-		
+		f, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)
+
 		if err != nil {
 			slog.Error("Failed to get by ID", "error", err)
 			http.Error(rsp, spelunker.ErrNotFound.Error(), http.StatusNotFound)
@@ -109,16 +109,16 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		repo_name := gjson.GetBytes(f, "properties.wof:repo")
 
 		github_url := fmt.Sprintf("https://github.com/whosonfirst-data/%s/blob/master/data/%s", repo_name, rel_path)
-		
+
 		vars := IdHandlerVars{
 			Id:         wof_id,
 			RequestId:  req_id,
 			URIArgs:    req_uri.URIArgs,
 			Properties: props.String(),
 			PageTitle:  page_title.String(),
-			GitHubURL: github_url,
+			GitHubURL:  github_url,
 			URIs:       opts.URIs,
-			RelPath: rel_path,
+			RelPath:    rel_path,
 		}
 
 		if req_uri.IsAlternate {

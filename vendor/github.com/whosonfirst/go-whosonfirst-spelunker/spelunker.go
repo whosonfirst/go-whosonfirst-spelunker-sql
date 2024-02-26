@@ -10,7 +10,7 @@ import (
 
 	"github.com/aaronland/go-pagination"
 	"github.com/aaronland/go-roster"
-	_ "github.com/whosonfirst/go-whosonfirst-placetypes"
+	"github.com/whosonfirst/go-whosonfirst-placetypes"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 )
@@ -28,13 +28,19 @@ type Spelunker interface {
 	// Retrieve an alternate geometry record for a Who's On First record by its unique ID.
 	GetAlternateGeometryById(context.Context, int64, *uri.AltGeom) ([]byte, error)
 	// Retrieve all the Who's On First record that are a descendant of a specific Who's On First ID.
-	GetDescendants(context.Context, pagination.Options, int64, ...Filter) (spr.StandardPlacesResults, pagination.Results, error)
+	GetDescendants(context.Context, pagination.Options, int64, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+	FacetDescendants(context.Context, int64, []Filter, []*Facet) ([]*Faceting, error)
 	// Return the total number of Who's On First records that are a descendant of a specific Who's On First ID.
 	CountDescendants(context.Context, int64) (int64, error)
 	// Retrieve all the Who's On First records that match a search criteria.
 	Search(context.Context, pagination.Options, *SearchOptions) (spr.StandardPlacesResults, pagination.Results, error)
 	// Retrieve all the Who's On First records that have been modified with a window of time.
-	GetRecent(context.Context, pagination.Options, time.Duration, ...Filter) (spr.StandardPlacesResults, pagination.Results, error)
+	GetRecent(context.Context, pagination.Options, time.Duration, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+
+	GetPlacetypes(context.Context) (*Faceting, error)
+	GetConcordances(context.Context) (*Faceting, error)
+
+	HasPlacetype(context.Context, pagination.Options, *placetypes.WOFPlacetype, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
 
 	// Not implemented yet
 

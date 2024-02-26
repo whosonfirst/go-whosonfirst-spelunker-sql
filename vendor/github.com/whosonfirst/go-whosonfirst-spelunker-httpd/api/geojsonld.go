@@ -32,7 +32,7 @@ func GeoJSONLDHandler(opts *GeoJSONLDHandlerOptions) (http.Handler, error) {
 			return
 		}
 
-		r, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)		
+		r, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)
 
 		if err != nil {
 			slog.Error("Failed to get by ID", "id", req_uri.Id, "error", err)

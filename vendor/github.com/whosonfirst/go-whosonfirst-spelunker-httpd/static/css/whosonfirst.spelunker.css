@@ -84,6 +84,13 @@ whosonfirst-map img {
 	column-gap: 2em;
 }
 
+.whosonfirst-facets {
+}
+
+.whosonfirst-facets li {
+	display:inline-flex;
+}
+
 ol, ul {
     line-height: 1.7em;
 }

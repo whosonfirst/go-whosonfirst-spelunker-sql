@@ -30,9 +30,14 @@
 	    </li>
 	    {{ end -}}
 	</ul>
-    </div>
+    </div>   
     <div id="whosonfirst-places-other">
-	FACETS GO HERE
+	{{ if (IsAvailable "FacetsURL" .) -}}
+	{{ if (IsAvailable "FacetsContextURL" .) -}}	
+	<div id="whosonfirst-facets" data-current-url="{{ $.FacetsContextURL }}" data-facets-url="{{ $.FacetsURL }}" data-facets="country,placetype">
+	    {{ end -}}
+	{{ end -}}	    
+	</div>
     </div>
 </div>
 

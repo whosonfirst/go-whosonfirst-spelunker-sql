@@ -75,7 +75,7 @@ func SVGHandler(opts *SVGHandlerOptions) (http.Handler, error) {
 
 		logger = logger.With("wofid", req_uri.Id)
 
-		f, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)		
+		f, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)
 
 		if err != nil {
 			slog.Error("Failed to get by ID", "id", req_uri.Id, "error", err)

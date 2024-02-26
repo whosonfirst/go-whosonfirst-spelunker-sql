@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"regexp"
 	"time"
-	
-	"github.com/sfomuseum/iso8601duration"
+
 	"github.com/aaronland/go-pagination"
 	"github.com/aaronland/go-pagination/countable"
 	"github.com/sfomuseum/go-http-auth"
+	"github.com/sfomuseum/iso8601duration"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
@@ -30,7 +30,7 @@ type RecentHandlerVars struct {
 	Places        []spr.StandardPlacesResult
 	Pagination    pagination.Results
 	PaginationURL string
-	Duration time.Duration
+	Duration      time.Duration
 }
 
 func RecentHandler(opts *RecentHandlerOptions) (http.Handler, error) {
@@ -52,7 +52,7 @@ func RecentHandler(opts *RecentHandlerOptions) (http.Handler, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to compile ISO8601 duration week pattern, %w", err)
 	}
-	
+
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
@@ -65,19 +65,19 @@ func RecentHandler(opts *RecentHandlerOptions) (http.Handler, error) {
 		str_d := "P30D"
 
 		path := req.URL.Path
-		
+
 		if re_week.MatchString(path) {
 			m := re_week.FindStringSubmatch(path)
 			str_d = m[0]
 		} else if re_full.MatchString(path) {
 			m := re_full.FindStringSubmatch(path)
-			str_d = m[0]			
+			str_d = m[0]
 		} else {
 			// pass
 		}
-		
+
 		logger = logger.With("duration", str_d)
-		
+
 		d, err := duration.FromString(str_d)
 
 		if err != nil {
@@ -85,7 +85,7 @@ func RecentHandler(opts *RecentHandlerOptions) (http.Handler, error) {
 			http.Error(rsp, "Bad request", http.StatusBadRequest)
 			return
 		}
-		
+
 		pg_opts, err := countable.NewCountableOptions()
 
 		if err != nil {
@@ -100,7 +100,9 @@ func RecentHandler(opts *RecentHandlerOptions) (http.Handler, error) {
 			pg_opts.Pointer(pg)
 		}
 
-		r, pg_r, err := opts.Spelunker.GetRecent(ctx, pg_opts, d.ToDuration())
+		filters := make([]spelunker.Filter, 0)
+
+		r, pg_r, err := opts.Spelunker.GetRecent(ctx, pg_opts, d.ToDuration(), filters)
 
 		if err != nil {
 			logger.Error("Failed to get recent", "error", err)
@@ -115,7 +117,7 @@ func RecentHandler(opts *RecentHandlerOptions) (http.Handler, error) {
 			Pagination:    pg_r,
 			URIs:          opts.URIs,
 			PaginationURL: pagination_url,
-			Duration: d.ToDuration(),
+			Duration:      d.ToDuration(),
 		}
 
 		rsp.Header().Set("Content-Type", "text/html")

@@ -46,16 +46,20 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, logger *slog.Logger) 
 
 	// START OF defer loading handlers (and all their dependencies) until they are actually routed to
 	// in case we are running in a "serverless" environment like AWS Lambda
-	
+
 	handlers := map[string]handler.RouteHandlerFunc{
 
 		// WWW/human-readable
-		run_options.URIs.Recent: recentHandlerFunc,		
-		run_options.URIs.Descendants: descendantsHandlerFunc,
-		run_options.URIs.Id:          idHandlerFunc,
-		run_options.URIs.Search:      searchHandlerFunc,
-		run_options.URIs.About:       aboutHandlerFunc,
-		run_options.URIs.Index:       indexHandlerFunc,		
+		run_options.URIs.Placetypes:       placetypesHandlerFunc,
+		run_options.URIs.Placetype:        hasPlacetypeHandlerFunc,
+		run_options.URIs.Concordances:     concordancesHandlerFunc,
+		run_options.URIs.Recent:           recentHandlerFunc,
+		run_options.URIs.Descendants:      descendantsHandlerFunc,
+		run_options.URIs.DescendantsFacet: descendantsFacetHandlerFunc,
+		run_options.URIs.Id:               idHandlerFunc,
+		run_options.URIs.Search:           searchHandlerFunc,
+		run_options.URIs.About:            aboutHandlerFunc,
+		run_options.URIs.Index:            indexHandlerFunc,
 
 		// Static assets
 		run_options.URIs.Static: staticHandlerFunc,
@@ -104,7 +108,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, logger *slog.Logger) 
 	mux.Handle("/", route_handler)
 
 	// END OF defer loading handlers (and all their dependencies) until they are actually routed to
-	
+
 	s, err := server.NewServer(ctx, run_options.ServerURI)
 
 	if err != nil {

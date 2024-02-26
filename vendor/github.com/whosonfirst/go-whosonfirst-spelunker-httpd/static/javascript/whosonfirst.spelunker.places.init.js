@@ -73,5 +73,5 @@ window.addEventListener("load", function load(event){
     
     var points_layer = L.geoJSON(f, points_layer_args);
     points_layer.addTo(map);
-    
+
 });

@@ -76,7 +76,7 @@ func NavPlaceHandler(opts *NavPlaceHandlerOptions) (http.Handler, error) {
 
 		for i, req_uri := range uris {
 
-			r, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)			
+			r, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)
 
 			if err != nil {
 				slog.Error("Failed to retrieve record", "id", req_uri.Id, "error", err)

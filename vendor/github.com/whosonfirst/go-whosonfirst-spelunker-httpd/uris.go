@@ -9,14 +9,19 @@ import (
 
 type URIs struct {
 	// WWW/human-readable
-	Id             string   `json:"id"`
-	IdAlt          []string `json:"id_alt"`
-	Descendants    string   `json:"descendants"`
-	DescendantsAlt []string `json:"descendants_alt"`
-	Index string `json:"index"`
-	Recent string `json:"recent"`
-	Search         string   `json:"search"`
-	About          string   `json:"about"`
+	Id               string   `json:"id"`
+	IdAlt            []string `json:"id_alt"`
+	Concordances     string   `json:"concordances"`
+	Concordance      string   `json:"concordance"`
+	Descendants      string   `json:"descendants"`
+	DescendantsAlt   []string `json:"descendants_alt"`
+	DescendantsFacet string   `json:"descendants_facet"`
+	Index            string   `json:"index"`
+	Placetypes       string   `json:"placetypes"`
+	Placetype        string   `json:"placetype"`
+	Recent           string   `json:"recent"`
+	Search           string   `json:"search"`
+	About            string   `json:"about"`
 
 	// Static assets
 	Static string `json:"static"`
@@ -70,28 +75,57 @@ func DefaultURIs() *URIs {
 	uris_table := &URIs{
 
 		// WWW/human-readable
-		
-		Id:          "/id/",
-		Recent: "/recent/",
-		Descendants: "/descendants/",
-		DescendantsAlt: []string{
-			"/id/{id}/descendants/",
-		},
-		Index: "/",
-		Search: "/search",
-		About:  "/about",
+
+		Index:            "/",
+		Search:           "/search",
+		About:            "/about",
+		Placetypes:       "/placetypes",
+		Placetype:        "/placetypes/{placetype}",
+		Concordances:     "/concordances/",
+		Concordance:      "/concordances/{concordance}",
+		Recent:           "/recent/",
+		Id:               "/id/{id}",
+		Descendants:      "/id/{id}/descendants",
+		DescendantsFacet: "/id/{id}/descendants/facet",
 
 		// Static Assets
 		Static: "/static/",
 
 		// API/machine-readable
-		GeoJSON:   "/geojson/",
+		GeoJSON: "/geojson/",
+		GeoJSONAlt: []string{
+			"/id/{id}/geojson",
+		},
 		GeoJSONLD: "/geojsonld/",
-		NavPlace:  "/navplace/",
-		Select:    "/select/",
-		SPR:       "/spr/",
-		SVG:       "/svg/",
+		GeoJSONLDAlt: []string{
+			"/id/{id}/geojsonld",
+		},
+		NavPlace: "/navplace/",
+		NavPlaceAlt: []string{
+			"/id/{id}/navplace",
+		},
+		Select: "/select/",
+		SelectAlt: []string{
+			"/id/{id}/select",
+		},
+		SPR: "/spr/",
+		SPRAlt: []string{
+			"/id/{id}/spr",
+		},
+		SVG: "/svg/",
+		SVGAlt: []string{
+			"/id/{id}/svg",
+		},
 	}
 
 	return uris_table
+}
+
+func URIForId(uri string, id int64) string {
+	return ReplaceAll(uri, "{id}", id)
+}
+
+func ReplaceAll(input string, pattern string, value any) string {
+	str_value := fmt.Sprintf("%v", value)
+	return strings.Replace(input, pattern, str_value, -1)
 }

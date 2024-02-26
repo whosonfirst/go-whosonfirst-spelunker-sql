@@ -29,7 +29,7 @@ func (s *NullSpelunker) GetById(ctx context.Context, id int64) ([]byte, error) {
 	return nil, ErrNotImplemented
 }
 
-func (s *NullSpelunker) GetDescendants(ctx context.Context, g_opts pagination.Options, id int64, filters ...Filter) (spr.StandardPlacesResults, pagination.Results, error) {
+func (s *NullSpelunker) GetDescendants(ctx context.Context, g_opts pagination.Options, id int64, filters []Filter) (spr.StandardPlacesResults, pagination.Results, error) {
 	return nil, nil, ErrNotImplemented
 }
 
@@ -41,6 +41,6 @@ func (s *NullSpelunker) Search(ctx context.Context, pg_opts pagination.Options, 
 	return nil, nil, ErrNotImplemented
 }
 
-func (s *NullSpelunker) GetRecent(context.Context, pagination.Options, time.Duration, ...Filter) (spr.StandardPlacesResults, pagination.Results, error) {
+func (s *NullSpelunker) GetRecent(context.Context, pagination.Options, time.Duration, []Filter) (spr.StandardPlacesResults, pagination.Results, error) {
 	return nil, nil, ErrNotImplemented
 }
