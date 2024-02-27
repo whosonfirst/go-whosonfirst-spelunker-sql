@@ -10,10 +10,12 @@ import (
 	"time"
 
 	"github.com/aaronland/go-pagination"
+	"github.com/aaronland/go-pagination/countable"
 	"github.com/whosonfirst/go-whosonfirst-placetypes"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	wof_spr "github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"github.com/whosonfirst/go-whosonfirst-sql/tables"
+	"github.com/whosonfirst/go-whosonfirst-sqlite-spr"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 )
 
@@ -334,4 +336,89 @@ func (s *SQLSpelunker) GetConcordances(ctx context.Context) (*spelunker.Faceting
 	}
 
 	return faceting, nil
+}
+
+func (s *SQLSpelunker) HasConcordance(ctx context.Context, pg_opts pagination.Options, namespace string, predicate string, value string, filters []spelunker.Filter) (wof_spr.StandardPlacesResults, pagination.Results, error) {
+
+	where := make([]string, 0)
+	args := make([]interface{}, 0)
+
+	switch {
+	case namespace != "" && predicate != "":
+		where = append(where, "other_source = ?")
+		args = append(args, fmt.Sprintf("%s:%s", namespace, predicate))
+	case namespace != "":
+		where = append(where, "other_source LIKE ?")
+		args = append(args, namespace+":%")
+	case predicate != "":
+		where = append(where, "other_source LIKE ?")
+		args = append(args, "%:"+predicate)
+	default:
+		return nil, nil, fmt.Errorf("Missing namespace and predicate")
+	}
+
+	if value != "" {
+		where = append(where, "other_id = ?")
+		args = append(args, value)
+	}
+
+	str_where := strings.Join(where, " AND ")
+
+	q := fmt.Sprintf("SELECT id FROM %s WHERE %s", tables.CONCORDANCES_TABLE_NAME, str_where)
+
+	rows, err := s.db.QueryContext(ctx, q, args...)
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to execute query, %w", err)
+	}
+
+	ids := make([]interface{}, 0)
+	qms := make([]string, 0)
+
+	for rows.Next() {
+
+		var str_id int64
+
+		err := rows.Scan(&str_id)
+
+		if err != nil {
+			return nil, nil, fmt.Errorf("Failed to scan row, %w", err)
+		}
+
+		ids = append(ids, str_id)
+		qms = append(qms, "?")
+	}
+
+	err = rows.Close()
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to close results rows, %w", err)
+	}
+
+	if len(ids) == 0 {
+
+		var pg_results pagination.Results
+		var pg_err error
+
+		if pg_opts != nil {
+			pg_results, pg_err = countable.NewResultsFromCountWithOptions(pg_opts, 0)
+		} else {
+			pg_results, pg_err = countable.NewResultsFromCount(0)
+		}
+
+		if pg_err != nil {
+			return nil, nil, fmt.Errorf("Failed to create pagination results, %w", err)
+		}
+
+		results := make([]wof_spr.StandardPlacesResult, 0)
+
+		spr_results := &spr.SQLiteResults{
+			Places: results,
+		}
+
+		return spr_results, pg_results, nil
+	}
+
+	spr_where := fmt.Sprintf("id IN (%s)", strings.Join(qms, ","))
+	return s.querySPR(ctx, pg_opts, spr_where, ids...)
 }
