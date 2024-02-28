@@ -128,7 +128,7 @@ func (s *SQLSpelunker) GetDescendants(ctx context.Context, pg_opts pagination.Op
 	return s.querySPR(ctx, pg_opts, str_where, args...)
 }
 
-func (s *SQLSpelunker) FacetDescendants(ctx context.Context, id int64, filters []spelunker.Filter, facets []*spelunker.Facet) ([]*spelunker.Faceting, error) {
+func (s *SQLSpelunker) GetDescendantsFaceted(ctx context.Context, id int64, filters []spelunker.Filter, facets []*spelunker.Facet) ([]*spelunker.Faceting, error) {
 
 	where := []string{
 		"instr(belongsto, ?) > 0",
