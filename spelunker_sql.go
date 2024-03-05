@@ -23,7 +23,6 @@ type SQLSpelunker struct {
 	spelunker.Spelunker
 	engine string
 	db     *db_sql.DB
-	include_alt bool
 }
 
 func init() {
@@ -124,10 +123,6 @@ func (s *SQLSpelunker) GetDescendants(ctx context.Context, pg_opts pagination.Op
 
 	}
 
-	if !s.include_alt {
-		where = append(where, "is_alt = 0")
-	}
-	
 	str_where := strings.Join(where, " AND ")
 
 	return s.querySPR(ctx, pg_opts, str_where, args...)
@@ -226,10 +221,6 @@ func (s *SQLSpelunker) HasPlacetype(ctx context.Context, pg_opts pagination.Opti
 
 	}
 
-	if !s.include_alt {
-		where = append(where, "is_alt = 0")
-	}
-	
 	str_where := strings.Join(where, " AND ")
 	return s.querySPR(ctx, pg_opts, str_where, args...)
 }
@@ -240,12 +231,6 @@ func (s *SQLSpelunker) Search(ctx context.Context, pg_opts pagination.Options, s
 		"names_all MATCH ?",
 	}
 
-	/*
-	if !s.include_alt {
-		where = append(where, "is_alt = 0")
-	}
-	*/
-	
 	str_where := strings.Join(where, " AND ")	
 	return s.querySearch(ctx, pg_opts, str_where, search_opts.Query)
 }
@@ -257,10 +242,6 @@ func (s *SQLSpelunker) GetRecent(ctx context.Context, pg_opts pagination.Options
 
 	where := []string{
 		"lastmodified >= ? ORDER BY lastmodified DESC",
-	}
-
-	if !s.include_alt {
-		where = append(where, "is_alt = 0")
 	}
 
 	str_where := strings.Join(where, " AND ")		
@@ -451,10 +432,6 @@ func (s *SQLSpelunker) HasConcordance(ctx context.Context, pg_opts pagination.Op
 		fmt.Sprintf("id IN (%s)", strings.Join(qms, ",")),
 	}
 
-	if !s.include_alt {
-		spr_where = append(spr_where, "is_alt = 0")
-	}
-
-	str_spr_where := strings.Join(spr_where, " AND ")
+ 	str_spr_where := strings.Join(spr_where, " AND ")
 	return s.querySPR(ctx, pg_opts, str_spr_where, ids...)
 }
