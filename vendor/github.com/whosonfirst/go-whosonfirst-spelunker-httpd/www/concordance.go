@@ -5,40 +5,42 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/aaronland/go-pagination"
 	"github.com/aaronland/go-pagination/countable"
 	"github.com/sfomuseum/go-http-auth"
-	"github.com/whosonfirst/go-whosonfirst-placetypes"
+	"github.com/whosonfirst/go-whosonfirst-sources"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
 )
 
-type HasPlacetypeHandlerOptions struct {
+type HasConcordanceHandlerOptions struct {
 	Spelunker     spelunker.Spelunker
 	Authenticator auth.Authenticator
 	Templates     *template.Template
 	URIs          *httpd.URIs
 }
 
-type HasPlacetypeHandlerVars struct {
+type HasConcordanceHandlerVars struct {
 	PageTitle        string
 	URIs             *httpd.URIs
-	Placetype        *placetypes.WOFPlacetype
+	Concordance      *spelunker.Concordance
 	Places           []spr.StandardPlacesResult
 	Pagination       pagination.Results
 	PaginationURL    string
 	FacetsURL        string
 	FacetsContextURL string
+	Source           *sources.WOFSource
 }
 
-func HasPlacetypeHandler(opts *HasPlacetypeHandlerOptions) (http.Handler, error) {
+func HasConcordanceHandler(opts *HasConcordanceHandlerOptions) (http.Handler, error) {
 
-	t := opts.Templates.Lookup("placetype")
+	t := opts.Templates.Lookup("concordance")
 
 	if t == nil {
-		return nil, fmt.Errorf("Failed to locate 'placetype' template")
+		return nil, fmt.Errorf("Failed to locate 'concordance' template")
 	}
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
@@ -48,17 +50,19 @@ func HasPlacetypeHandler(opts *HasPlacetypeHandlerOptions) (http.Handler, error)
 		logger := slog.Default()
 		logger = logger.With("request", req.URL)
 
-		req_pt := req.PathValue("placetype")
+		ns := req.PathValue("namespace")
+		pred := req.PathValue("predicate")
+		value := req.PathValue("value")
 
-		logger = logger.With("request placetype", req_pt)
+		ns = strings.TrimRight(ns, ":")
+		pred = strings.TrimLeft(pred, ":")
+		pred = strings.TrimRight(pred, "=")
 
-		pt, err := placetypes.GetPlacetypeByName(req_pt)
+		c := spelunker.NewConcordanceFromTriple(ns, pred, value)
 
-		if err != nil {
-			logger.Error("Invalid placetype", "error", err)
-			http.Error(rsp, "Bad request", http.StatusBadRequest)
-			return
-		}
+		logger = logger.With("namespace", ns)
+		logger = logger.With("predicate", pred)
+		logger = logger.With("value", value)
 
 		pg_opts, err := countable.NewCountableOptions()
 
@@ -88,23 +92,32 @@ func HasPlacetypeHandler(opts *HasPlacetypeHandlerOptions) (http.Handler, error)
 			return
 		}
 
-		r, pg_r, err := opts.Spelunker.HasPlacetype(ctx, pg_opts, pt, filters)
+		r, pg_r, err := opts.Spelunker.HasConcordance(ctx, pg_opts, ns, pred, value, filters)
 
 		if err != nil {
-			logger.Error("Failed to get records having placetype", "error", err)
+			logger.Error("Failed to get records having concordance", "error", err)
 			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		pagination_url := fmt.Sprintf("%s?", req.URL.Path)
 
-		vars := HasPlacetypeHandlerVars{
-			PageTitle:     pt.Name,
+		page_title := fmt.Sprintf("Concordances for %s", c)
+
+		src, err := sources.GetSourceByName(ns)
+
+		if err != nil {
+			logger.Error("Failed to derive source from namespace", "error", err)
+		}
+
+		vars := HasConcordanceHandlerVars{
+			PageTitle:     page_title,
 			URIs:          opts.URIs,
-			Placetype:     pt,
+			Concordance:   c,
 			Places:        r.Results(),
 			Pagination:    pg_r,
 			PaginationURL: pagination_url,
+			Source:        src,
 		}
 
 		rsp.Header().Set("Content-Type", "text/html")

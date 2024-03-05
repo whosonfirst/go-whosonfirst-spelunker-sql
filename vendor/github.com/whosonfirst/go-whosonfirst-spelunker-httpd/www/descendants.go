@@ -76,7 +76,7 @@ func DescendantsHandler(opts *DescendantsHandlerOptions) (http.Handler, error) {
 			"country",
 		}
 
-		filters, err := FiltersFromRequest(ctx, req, filter_params)
+		filters, err := httpd.FiltersFromRequest(ctx, req, filter_params)
 
 		if err != nil {
 			logger.Error("Failed to derive filters from request", "error", err)
@@ -96,7 +96,7 @@ func DescendantsHandler(opts *DescendantsHandlerOptions) (http.Handler, error) {
 		pagination_url := fmt.Sprintf("%s?", httpd.URIForId(opts.URIs.Descendants, uri.Id))
 
 		// This is not ideal but I am not sure what is better yet...
-		facets_url := httpd.URIForId(opts.URIs.DescendantsFacet, uri.Id)
+		facets_url := httpd.URIForId(opts.URIs.DescendantsFaceted, uri.Id)
 		facets_context_url := req.URL.Path
 
 		vars := DescendantsHandlerVars{
