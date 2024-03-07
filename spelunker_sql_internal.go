@@ -95,7 +95,7 @@ func (s *SQLSpelunker) querySPR(ctx context.Context, pg_opts pagination.Options,
 			done_ch <- true
 		}()
 
-		count_q := fmt.Sprintf("SELECT id FROM %s WHERE %s", tables.SPR_TABLE_NAME, where)
+		count_q := fmt.Sprintf("SELECT %s.id AS id FROM %s WHERE %s", tables.SPR_TABLE_NAME, tables.SPR_TABLE_NAME, where)
 		count, err := s.queryCount(ctx, "id", count_q, args...)
 
 		if err != nil {

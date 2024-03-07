@@ -2,7 +2,7 @@ CWD=$(shell pwd)
 
 GOMOD=$(shell test -f "go.work" && echo "readonly" || echo "vendor")
 
-SPELUNKER_URI=sql://sqlite3?dsn=file:/usr/local/data/ca-3.db
+SPELUNKER_URI=sql://sqlite3?dsn=file:/usr/local/data/xy.db
 
 server:
 	go run -mod $(GOMOD) -tags "icu json1 fts5" cmd/httpd/main.go \

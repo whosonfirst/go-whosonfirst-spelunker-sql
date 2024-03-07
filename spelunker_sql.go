@@ -4,7 +4,7 @@ import (
 	"context"
 	db_sql "database/sql"
 	"fmt"
-	_ "log/slog"
+	"log/slog"
 	"net/url"
 	"strings"
 	"time"
@@ -48,12 +48,16 @@ func NewSQLSpelunker(ctx context.Context, uri string) (spelunker.Spelunker, erro
 		return nil, fmt.Errorf("Missing ?dsn= parameter")
 	}
 
+	slog.Info("DSN", "dsn", dsn)
+	
 	db, err := db_sql.Open(engine, dsn)
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open database connection, %w", err)
 	}
 
+	db.SetMaxOpenConns(1)
+	
 	s := &SQLSpelunker{
 		engine: engine,
 		db:     db,
@@ -101,6 +105,176 @@ func (s *SQLSpelunker) getById(ctx context.Context, q string, args ...interface{
 func (s *SQLSpelunker) GetDescendants(ctx context.Context, pg_opts pagination.Options, id int64, filters []spelunker.Filter) (wof_spr.StandardPlacesResults, pagination.Results, error) {
 
 	where := []string{
+		fmt.Sprintf("%s.ancestor_id = ?", tables.ANCESTORS_TABLE_NAME),
+	}
+
+	args := []interface{}{
+		id,
+	}
+
+	for _, f := range filters {
+
+		switch f.Scheme() {
+		case spelunker.COUNTRY_FILTER_SCHEME:
+			where = append(where, fmt.Sprintf("%s.country = ?", tables.SPR_TABLE_NAME))
+			args = append(args, f.Value())
+		case spelunker.PLACETYPE_FILTER_SCHEME:
+			where = append(where, fmt.Sprintf("%s.placetype = ?", tables.SPR_TABLE_NAME))
+			args = append(args, f.Value())
+		default:
+			return nil, nil, fmt.Errorf("Invalid or unsupported filter scheme, %s", f.Scheme())
+		}
+	}
+
+	str_where := strings.Join(where, " AND ")
+
+	// START OF put me in a function
+	str_cols := `id, parent_id, name, placetype,
+		inception, cessation,
+		country, repo,
+		latitude, longitude,
+		min_latitude, min_longitude,
+		max_latitude, max_longitude,
+		is_current, is_deprecated, is_ceased,is_superseded, is_superseding,
+		supersedes, superseded_by, belongsto,
+		is_alt, alt_label,
+		lastmodified`
+
+	cols := strings.Split(str_cols, ",")
+	// END OF put me in a function
+	
+	count_cols := len(cols)
+
+	fq_cols := make([]string, count_cols)
+	
+	for idx, c := range cols {
+		c = strings.TrimSpace(c)
+		fq_cols[idx] = fmt.Sprintf("%s.%s AS %s", tables.SPR_TABLE_NAME, c, c)
+	}
+
+	str_fq_cols := strings.Join(fq_cols, ",")
+	
+	q := fmt.Sprintf("SELECT %s FROM %s JOIN %s ON %s.id = %s.id AND %s", str_fq_cols, tables.SPR_TABLE_NAME, tables.ANCESTORS_TABLE_NAME, tables.SPR_TABLE_NAME, tables.ANCESTORS_TABLE_NAME, str_where)
+
+	if pg_opts != nil {
+		limit, offset := s.deriveLimitOffset(pg_opts)
+		q = fmt.Sprintf("%s LIMIT %d OFFSET %d", q, limit, offset)
+	}
+
+	pg_ch := make(chan pagination.Results)
+	results_ch := make(chan wof_spr.StandardPlacesResults)
+
+	done_ch := make(chan bool)
+	err_ch := make(chan error)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() {
+
+		defer func() {
+			done_ch <- true
+		}()
+		
+		count_q := fmt.Sprintf("SELECT %s.id AS id FROM %s JOIN %s ON %s.id = %s.id AND %s", tables.SPR_TABLE_NAME, tables.SPR_TABLE_NAME, tables.ANCESTORS_TABLE_NAME, tables.SPR_TABLE_NAME, tables.ANCESTORS_TABLE_NAME, str_where)
+
+		count, err := s.queryCount(ctx, fmt.Sprintf("%s.id", tables.SPR_TABLE_NAME), count_q, args...)
+
+		if err != nil {
+			err_ch <- fmt.Errorf("Failed to derive query count, %w", err)
+			return
+		}
+
+		var pg_results pagination.Results
+		var pg_err error
+
+		if pg_opts != nil {
+			pg_results, pg_err = countable.NewResultsFromCountWithOptions(pg_opts, count)
+		} else {
+			pg_results, pg_err = countable.NewResultsFromCount(count)
+		}
+
+		if pg_err != nil {
+			err_ch <- fmt.Errorf("Failed to derive pagination results, %w", pg_err)
+			return
+		}
+
+		pg_ch <- pg_results
+	}()
+
+	go func() {
+
+		defer func() {
+			done_ch <- true
+		}()
+
+		rows, err := s.db.QueryContext(ctx, q, args...)
+
+		if err != nil {
+			err_ch <- fmt.Errorf("Failed to query where '%s', %w", q, err)
+			return
+		}
+
+		results := make([]wof_spr.StandardPlacesResult, 0)
+
+		for rows.Next() {
+
+			select {
+			case <-ctx.Done():
+				break
+			default:
+				// pass
+			}
+
+			spr_row, err := spr.RetrieveSPRWithRows(ctx, rows)
+
+			if err != nil {
+				err_ch <- fmt.Errorf("Failed to derive SPR from row, %w", err)
+				return
+			}
+
+			results = append(results, spr_row)
+		}
+
+		err = rows.Close()
+
+		if err != nil {
+			err_ch <- fmt.Errorf("Failed to close results rows for descendants, %w", err)
+			return
+		}
+
+		spr_results := &spr.SQLiteResults{
+			Places: results,
+		}
+
+		results_ch <- spr_results
+	}()
+
+	var pg_results pagination.Results
+	var spr_results wof_spr.StandardPlacesResults
+
+	remaining := 2
+
+	for remaining > 0 {
+		select {
+		case <-done_ch:
+			remaining -= 1
+		case r := <-pg_ch:
+			pg_results = r
+		case r := <-results_ch:
+			spr_results = r
+		case err := <-err_ch:
+			return nil, nil, err
+		}
+	}
+
+	return spr_results, pg_results, nil	
+
+	// The old way - this doesn't work with the sqlite vfs stuff
+	
+	/*
+	
+	where := []string{
 		"instr(belongsto, ?) > 0",
 	}
 
@@ -126,6 +300,7 @@ func (s *SQLSpelunker) GetDescendants(ctx context.Context, pg_opts pagination.Op
 	str_where := strings.Join(where, " AND ")
 
 	return s.querySPR(ctx, pg_opts, str_where, args...)
+	*/
 }
 
 func (s *SQLSpelunker) GetDescendantsFaceted(ctx context.Context, id int64, filters []spelunker.Filter, facets []*spelunker.Facet) ([]*spelunker.Faceting, error) {
@@ -181,11 +356,18 @@ func (s *SQLSpelunker) CountDescendants(ctx context.Context, id int64) (int64, e
 
 	var count int64
 
-	q := fmt.Sprintf("SELECT COUNT(id) FROM %s WHERE instr(belongsto, ?)", tables.SPR_TABLE_NAME)
+	// q := fmt.Sprintf("SELECT COUNT(id) FROM %s WHERE instr(belongsto, ?)", tables.SPR_TABLE_NAME)
 
+	q := fmt.Sprintf("SELECT COUNT(id) FROM %s WHERE ancestor_id = ?", tables.ANCESTORS_TABLE_NAME)
+	slog.Info(q)
+	
 	row := s.db.QueryRowContext(ctx, q, id)
+
+	slog.Info("ROW")
 	err := row.Scan(&count)
 
+	slog.Info("SCAN", "error", err)
+	
 	switch {
 	case err == db_sql.ErrNoRows:
 		return 0, spelunker.ErrNotFound
