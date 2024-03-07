@@ -1,10 +1,17 @@
 package sql
 
+// Dealing with descendants means querying the `ancestors` table or joining on
+// the `ancestors` table and the `spr` table. Originally querying for descendants
+// was done using SQLite's "instr" function but a) that probably wouldn't have
+// worked for MySQL, etc. and b) it (the function) triggered timeouts and errors
+// when querying using a remote VFS-enabled SQLite database, or at least that is
+// the current theory.
+
 import (
 	"context"
 	db_sql "database/sql"
 	"fmt"
-	"log/slog"
+	_ "log/slog"
 	"strings"
 
 	"github.com/aaronland/go-pagination"
@@ -188,10 +195,11 @@ func (s *SQLSpelunker) GetDescendantsFaceted(ctx context.Context, id int64, filt
 
 	q := s.descendantsQueryFacetStatement(ctx, f, q_where)
 
-	var counts []*spelunker.FacetCount
+	counts, err := s.facetWithQuery(ctx, q, q_args...)
 
-	// FIX ME: Do count here
-	slog.Info("DO FACETS HERE", "query", q, "args", q_args)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to facet columns, %w", err)
+	}
 
 	results := []*spelunker.Faceting{
 		&spelunker.Faceting{
