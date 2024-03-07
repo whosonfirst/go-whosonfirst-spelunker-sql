@@ -10,7 +10,6 @@ import (
 
 	"github.com/aaronland/go-pagination"
 	"github.com/aaronland/go-pagination/countable"
-	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	wof_spr "github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"github.com/whosonfirst/go-whosonfirst-sql/tables"
 	"github.com/whosonfirst/go-whosonfirst-sqlite-spr"
@@ -189,45 +188,6 @@ func (s *SQLSpelunker) querySPR(ctx context.Context, pg_opts pagination.Options,
 	}
 
 	return spr_results, pg_results, nil
-}
-
-func (s *SQLSpelunker) facetSPR(ctx context.Context, facet *spelunker.Facet, where string, args ...interface{}) ([]*spelunker.FacetCount, error) {
-
-	q := fmt.Sprintf("SELECT %s, COUNT(id) AS count FROM %s WHERE %s GROUP BY %s ORDER BY count DESC", facet, tables.SPR_TABLE_NAME, where, facet)
-	rows, err := s.db.QueryContext(ctx, q, args...)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to query facets, %w", err)
-	}
-
-	counts := make([]*spelunker.FacetCount, 0)
-
-	for rows.Next() {
-
-		var facet string
-		var count int64
-
-		err := rows.Scan(&facet, &count)
-
-		if err != nil {
-			return nil, fmt.Errorf("Failed to scan ID, %w", err)
-		}
-
-		f := &spelunker.FacetCount{
-			Key:   facet,
-			Count: count,
-		}
-
-		counts = append(counts, f)
-	}
-
-	err = rows.Close()
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to close results rows for descendants, %w", err)
-	}
-
-	return counts, nil
 }
 
 func (s *SQLSpelunker) querySearch(ctx context.Context, pg_opts pagination.Options, where string, args ...interface{}) (wof_spr.StandardPlacesResults, pagination.Results, error) {
