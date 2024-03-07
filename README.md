@@ -19,11 +19,8 @@ $> cd /usr/local/whosonfirst/go-whosonfirst-sqlite-features-index
 $> ./bin/wof-sqlite-index-features-mattn \
 	-timings \
 	-database-uri mattn:///usr/local/data/ca-search.db \
-	-spatial-tables \
-	-ancestors \
-	-search \
-	-concordances \	
-	-index-alt-files \
+	-spelunker-tables \
+	-index-alt geojson \
 	/usr/local/data/whosonfirst-data-admin-ca
 
 $> du -h /usr/local/data/ca-search.db
