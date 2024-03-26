@@ -28,15 +28,26 @@ func (s *SQLSpelunker) GetRecordForId(ctx context.Context, id int64) ([]byte, er
 
 func (s *SQLSpelunker) GetFeatureForId(ctx context.Context, id int64, uri_args *uri.URIArgs) ([]byte, error) {
 
-	alt_geom := uri_args.AltGeom
-	alt_label, err := alt_geom.String()
+	q := fmt.Sprintf("SELECT body FROM %s WHERE id = ?", tables.GEOJSON_TABLE_NAME)
 
-	if err != nil {
-		return nil, fmt.Errorf("Failed to derive label from alt geom, %w", err)
+	args := []interface{}{
+		id,
 	}
 
-	q := fmt.Sprintf("SELECT body FROM %s WHERE id = ? AND alt_label = ?", tables.GEOJSON_TABLE_NAME)
-	return s.getById(ctx, q, id, alt_label)
+	if uri_args.IsAlternate {
+
+		alt_geom := uri_args.AltGeom
+		label, err := alt_geom.String()
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to derive label from alt geom, %w", err)
+		}
+
+		q = fmt.Sprintf("%s AND alt_label = ?", q)
+		args = append(args, label)
+	}
+
+	return s.getById(ctx, q, args...)
 }
 
 func (s *SQLSpelunker) getById(ctx context.Context, q string, args ...interface{}) ([]byte, error) {
