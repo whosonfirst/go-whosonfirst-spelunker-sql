@@ -13,6 +13,56 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-sqlite-spr"
 )
 
+func (s *SQLSpelunker) GetConcordances(ctx context.Context) (*spelunker.Faceting, error) {
+
+	facet_counts := make([]*spelunker.FacetCount, 0)
+
+	q := fmt.Sprintf("SELECT other_source, COUNT(other_id) AS count FROM %s GROUP BY other_source ORDER BY count DESC", tables.CONCORDANCES_TABLE_NAME)
+
+	rows, err := s.db.QueryContext(ctx, q)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to execute query, %w", err)
+	}
+
+	for rows.Next() {
+
+		var source string
+		var count int64
+
+		err := rows.Scan(&source, &count)
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to scan row, %w", err)
+		}
+
+		nspred := strings.Split(source, ":")
+		ns := nspred[0]
+
+		f := &spelunker.FacetCount{
+			Key:   ns,
+			Count: count,
+		}
+
+		facet_counts = append(facet_counts, f)
+	}
+
+	err = rows.Close()
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to close results rows, %w", err)
+	}
+
+	f := spelunker.NewFacet("concordance")
+
+	faceting := &spelunker.Faceting{
+		Facet:   f,
+		Results: facet_counts,
+	}
+
+	return faceting, nil
+}
+
 func (s *SQLSpelunker) HasConcordance(ctx context.Context, pg_opts pagination.Options, namespace string, predicate string, value any, filters []spelunker.Filter) (wof_spr.StandardPlacesResults, pagination.Results, error) {
 
 	where := make([]string, 0)
@@ -102,52 +152,7 @@ func (s *SQLSpelunker) HasConcordance(ctx context.Context, pg_opts pagination.Op
 	return s.querySPR(ctx, pg_opts, str_spr_where, ids...)
 }
 
-func (s *SQLSpelunker) GetConcordances(ctx context.Context) (*spelunker.Faceting, error) {
-
-	facet_counts := make([]*spelunker.FacetCount, 0)
-
-	q := fmt.Sprintf("SELECT other_source, COUNT(other_id) AS count FROM %s GROUP BY other_source ORDER BY count DESC", tables.CONCORDANCES_TABLE_NAME)
-
-	rows, err := s.db.QueryContext(ctx, q)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to execute query, %w", err)
-	}
-
-	for rows.Next() {
-
-		var source string
-		var count int64
-
-		err := rows.Scan(&source, &count)
-
-		if err != nil {
-			return nil, fmt.Errorf("Failed to scan row, %w", err)
-		}
-
-		nspred := strings.Split(source, ":")
-		ns := nspred[0]
-
-		f := &spelunker.FacetCount{
-			Key:   ns,
-			Count: count,
-		}
-
-		facet_counts = append(facet_counts, f)
-	}
-
-	err = rows.Close()
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to close results rows, %w", err)
-	}
-
-	f := spelunker.NewFacet("concordance")
-
-	faceting := &spelunker.Faceting{
-		Facet:   f,
-		Results: facet_counts,
-	}
-
-	return faceting, nil
+func (s *SQLSpelunker) HasConcordanceFaceted(ctx context.Context, namespace string, predicate string, value any, filters []spelunker.Filter, facets []*spelunker.Facet) ([]*spelunker.Faceting, error) {
+	// TO DO
+	return nil, spelunker.ErrNotImplemented
 }

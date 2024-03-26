@@ -4,17 +4,9 @@ import (
 	"context"
 	db_sql "database/sql"
 	"fmt"
-	"log/slog"
 	"net/url"
-	"strings"
-	"time"
 
-	"github.com/aaronland/go-pagination"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
-	"github.com/whosonfirst/go-whosonfirst-spelunker/document"
-	wof_spr "github.com/whosonfirst/go-whosonfirst-spr/v2"
-	"github.com/whosonfirst/go-whosonfirst-sql/tables"
-	"github.com/whosonfirst/go-whosonfirst-uri"
 )
 
 type SQLSpelunker struct {
@@ -46,7 +38,7 @@ func NewSQLSpelunker(ctx context.Context, uri string) (spelunker.Spelunker, erro
 		return nil, fmt.Errorf("Missing ?dsn= parameter")
 	}
 
-	slog.Info("DSN", "dsn", dsn)
+	// slog.Info("DSN", "dsn", dsn)
 
 	db, err := db_sql.Open(engine, dsn)
 
@@ -64,71 +56,33 @@ func NewSQLSpelunker(ctx context.Context, uri string) (spelunker.Spelunker, erro
 	return s, nil
 }
 
-func (s *SQLSpelunker) GetRecordForId(ctx context.Context, id int64) ([]byte, error) {
+// concordances.go
+// GetConcordances(context.Context) (*Faceting, error)
+// HasConcordance(context.Context, pagination.Options, string, string, any, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+// HasConcordanceFaceted(context.Context, string, string, any, []Filter, []*Facet) ([]*Faceting, error)
 
-	// TBD - replace this with a dedicated "spelunker" table
-	// https://github.com/whosonfirst/go-whosonfirst-sql/blob/spelunker/tables/spelunker.sqlite.schema
+// descendants.go
+// GetDescendants(context.Context, pagination.Options, int64, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+// GetDescendantsFaceted(context.Context, int64, []Filter, []*Facet) ([]*Faceting, error)
+// CountDescendants(context.Context, int64) (int64, error)
 
-	q := fmt.Sprintf("SELECT body FROM %s WHERE id = ?", tables.GEOJSON_TABLE_NAME)
-	body, err := s.getById(ctx, q, id)
+// id.go
+// GetRecordForId(context.Context, int64) ([]byte, error)
+// GetFeatureForId(context.Context, int64, *uri.URIArgs) ([]byte, error)
 
-	if err != nil {
-		return nil, fmt.Errorf("Failed to retrieve record, %w", err)
-	}
+// nullisland.go
+// VisitingNullIsland(context.Context, pagination.Options, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+// VisitingNullIslandFaceted(context.Context, []Filter, []*Facet) ([]*Faceting, error)
 
-	return document.PrepareSpelunkerV2Document(ctx, body)
-}
+// placetypes.go
+// GetPlacetypes(context.Context) (*Faceting, error)
+// HasPlacetype(context.Context, pagination.Options, *placetypes.WOFPlacetype, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+// HasPlacetypeFaceted(context.Context, *placetypes.WOFPlacetype, []Filter, []*Facet) ([]*Faceting, error)
 
-func (s *SQLSpelunker) GetFeatureForId(ctx context.Context, id int64, uri_args *uri.URIArgs) ([]byte, error) {
+// recent.go
+// GetRecent(context.Context, pagination.Options, time.Duration, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+// GetRecentFaceted(context.Context, time.Duration, []Filter, []*Facet) ([]*Faceting, error)
 
-	alt_geom := uri_args.AltGeom
-	alt_label, err := alt_geom.String()
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to derive label from alt geom, %w", err)
-	}
-
-	q := fmt.Sprintf("SELECT body FROM %s WHERE id = ? AND alt_label = ?", tables.GEOJSON_TABLE_NAME)
-	return s.getById(ctx, q, id, alt_label)
-}
-
-func (s *SQLSpelunker) getById(ctx context.Context, q string, args ...interface{}) ([]byte, error) {
-
-	var body []byte
-
-	rsp := s.db.QueryRowContext(ctx, q, args...)
-
-	err := rsp.Scan(&body)
-
-	switch {
-	case err == db_sql.ErrNoRows:
-		return nil, spelunker.ErrNotFound
-	case err != nil:
-		return nil, fmt.Errorf("Failed to execute get by id query, %w", err)
-	default:
-		return body, nil
-	}
-}
-
-func (s *SQLSpelunker) Search(ctx context.Context, pg_opts pagination.Options, search_opts *spelunker.SearchOptions, filters []spelunker.Filter) (wof_spr.StandardPlacesResults, pagination.Results, error) {
-
-	where := []string{
-		"names_all MATCH ?",
-	}
-
-	str_where := strings.Join(where, " AND ")
-	return s.querySearch(ctx, pg_opts, str_where, search_opts.Query)
-}
-
-func (s *SQLSpelunker) GetRecent(ctx context.Context, pg_opts pagination.Options, d time.Duration, filters []spelunker.Filter) (wof_spr.StandardPlacesResults, pagination.Results, error) {
-
-	now := time.Now()
-	then := now.Unix() - int64(d.Seconds())
-
-	where := []string{
-		"lastmodified >= ? ORDER BY lastmodified DESC",
-	}
-
-	str_where := strings.Join(where, " AND ")
-	return s.querySPR(ctx, pg_opts, str_where, then)
-}
+// search.go
+// Search(context.Context, pagination.Options, *SearchOptions, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+// SearchFaceted(context.Context, *SearchOptions, []Filter, []*Facet) ([]*Faceting, error)

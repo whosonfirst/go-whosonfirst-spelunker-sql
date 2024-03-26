@@ -88,3 +88,9 @@ func (s *SQLSpelunker) HasPlacetype(ctx context.Context, pg_opts pagination.Opti
 	str_where := strings.Join(where, " AND ")
 	return s.querySPR(ctx, pg_opts, str_where, args...)
 }
+
+func (s *SQLSpelunker) HasPlacetypeFaceted(ctx context.Context, pt *placetypes.WOFPlacetype, filters []spelunker.Filter, facets []*spelunker.Facet) ([]*spelunker.Faceting, error) {
+
+	// TO DO
+	return nil, spelunker.ErrNotImplemented
+}
