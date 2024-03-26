@@ -9,6 +9,15 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 )
 
+func DefaultFilterParams() []string {
+
+	return []string{
+		"placetype",
+		"country",
+		"iscurrent",
+	}
+}
+
 func FiltersFromRequest(ctx context.Context, req *http.Request, params []string) ([]spelunker.Filter, error) {
 
 	filters := make([]spelunker.Filter, 0)
@@ -16,6 +25,32 @@ func FiltersFromRequest(ctx context.Context, req *http.Request, params []string)
 	for _, p := range params {
 
 		switch p {
+		case "iscurrent":
+
+			str_fl, err := sanitize.GetString(req, "iscurrent")
+
+			if err != nil {
+				return nil, fmt.Errorf("Failed to derive ?is_current= query parameter, %w", err)
+			}
+
+			if str_fl != "" {
+
+				switch str_fl {
+				case "-1", "0", "1":
+					// ok
+				default:
+					return nil, fmt.Errorf("Invalid ?iscurrent= query parameter")
+				}
+
+				is_current_f, err := spelunker.NewIsCurrentFilterFromString(ctx, str_fl)
+
+				if err != nil {
+					return nil, fmt.Errorf("Failed to create new is current filter, %w", err)
+				}
+
+				filters = append(filters, is_current_f)
+			}
+
 		case "country":
 
 			country, err := sanitize.GetString(req, "country")

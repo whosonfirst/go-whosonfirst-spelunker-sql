@@ -1,0 +1,29 @@
+{{ define "code" -}}
+{{ template "inc_head" . -}}
+
+<h2>The Who's On First Spelunker Codebase</h2>
+
+<p>The code is broken up in to three parts:</p>
+
+<h3>go-whosonfirst-spelunker</h3>
+
+<p>This package defines a common <q>interface</q> (sometimes called a <q>contract</q> in other programming languages for how the Spelunker works. It defines the kinds of questions (methods) you can ask it and what the responses to those questions will look like. It does not actually implement any functionality.</p>
+    
+<h3>go-whosonfirst-spelunker-{DATABASE}</h3>
+
+<p>These packages are <em>implementations</em> of the <code>go-whosonfirst-spelunker</code> interfaces. As a practical matter this tends to mean that it is the code that manages how the questions and answers defined in the spelunker inteface are stored and retrieved from a particular database engine. For example:</p>
+
+<ul>
+    <li><a href="">go-whosonfirst-spelunker-opensearch</a> ...</li>
+    <li><a href="">go-whosonfirst-spelunker-sql</a> ...</li>
+</ul>
+
+<p>Each <code>go-whosonfirst-spelunker-{DATABASE}</code> provides codes and applications specific to its implementation. Each package imports the code from the <code>go-whosonfirst-spelunker</code> package and <em>MAY</em> import code from the <code>go-whosonfirst-spelunker-httpd</code> package, discussed below.</p>
+
+<h3>go-whosonfirst-spelunker-httpd</h3>
+
+<p>This package...</p>
+
+    
+{{ template "inc_foot" . -}}
+{{ end -}}

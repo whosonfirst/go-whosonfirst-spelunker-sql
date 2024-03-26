@@ -25,10 +25,13 @@ whosonfirst.spelunker.maps = (function(){
 	map: function(map_el){
 
 	    const map_id = map_el.getAttribute("id");
-	    
+
 	    if (_maps[map_id]){
 		return maps[map_id];
 	    }
+	    
+	    var tiles_url = map_el.getAttribute("data-tiles-url");	    
+	    tiles_url = decodeURIComponent(tiles_url);
 
 	    const map = L.map(map_el);
 
@@ -47,8 +50,7 @@ whosonfirst.spelunker.maps = (function(){
 	    var tooltips_pane = map.createPane(tooltips_pane_name);
 	    tooltips_pane.style.zIndex = tooltips_pane_zindex;
 	    
-	    var tile_url = "https://static.sfomuseum.org/pmtiles/sfomuseum_v3/{z}/{x}/{y}.mvt?key=xxx";
-	    var layer = protomapsL.leafletLayer({url: tile_url});
+	    var layer = protomapsL.leafletLayer({url: tiles_url, theme: 'white'});
 	    layer.addTo(map);
 
 	    _maps[map_id] = map;	    

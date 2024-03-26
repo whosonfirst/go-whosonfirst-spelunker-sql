@@ -23,29 +23,41 @@ type SpelunkerInitializationFunc func(ctx context.Context, uri string) (Spelunke
 
 // Spelunker is an interface for writing data to multiple sources or targets.
 type Spelunker interface {
-	// Retrieve an individual Who's On First record by its unique ID
-	GetById(context.Context, int64) ([]byte, error)
-	// Retrieve an alternate geometry record for a Who's On First record by its unique ID.
-	GetAlternateGeometryById(context.Context, int64, *uri.AltGeom) ([]byte, error)
+
+	// Retrieve properties (or more specifically the "document") for...
+	GetRecordForId(context.Context, int64) ([]byte, error)
+	// Retrive GeoJSON Feature for...
+	GetFeatureForId(context.Context, int64, *uri.URIArgs) ([]byte, error)
+	
+	// Retrieve an individual Who's On First record by its unique ID (DEPRECATED)
+	// GetById(context.Context, int64) ([]byte, error)
+	// Retrieve an alternate geometry record for a Who's On First record by its unique ID. (DEPRECATED)
+	// GetAlternateGeometryById(context.Context, int64, *uri.AltGeom) ([]byte, error)
+	
 	// Retrieve all the Who's On First record that are a descendant of a specific Who's On First ID.
 	GetDescendants(context.Context, pagination.Options, int64, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
 	GetDescendantsFaceted(context.Context, int64, []Filter, []*Facet) ([]*Faceting, error)
 	// Return the total number of Who's On First records that are a descendant of a specific Who's On First ID.
 	CountDescendants(context.Context, int64) (int64, error)
+
 	// Retrieve all the Who's On First records that match a search criteria.
-	Search(context.Context, pagination.Options, *SearchOptions) (spr.StandardPlacesResults, pagination.Results, error)
+	Search(context.Context, pagination.Options, *SearchOptions, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+	SearchFaceted(context.Context, *SearchOptions, []Filter, []*Facet) ([]*Faceting, error)
+
 	// Retrieve all the Who's On First records that have been modified with a window of time.
 	GetRecent(context.Context, pagination.Options, time.Duration, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+	GetRecentFaceted(context.Context, time.Duration, []Filter, []*Facet) ([]*Faceting, error)
 
 	GetPlacetypes(context.Context) (*Faceting, error)
-	GetConcordances(context.Context) (*Faceting, error)
-
 	HasPlacetype(context.Context, pagination.Options, *placetypes.WOFPlacetype, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
-	HasPlacetypeFaceted(context.Context, pagination.Options, *placetypes.WOFPlacetype, []Filter, []*Facet) ([]*Faceting, error)
+	HasPlacetypeFaceted(context.Context, *placetypes.WOFPlacetype, []Filter, []*Facet) ([]*Faceting, error)
 
-	// Update this to expect *Concordance instead of parts
-	HasConcordance(context.Context, pagination.Options, string, string, string, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
-	HasConcordanceFaceted(context.Context, pagination.Options, string, string, string, []Filter, []*Facet) ([]*Faceting, error)
+	GetConcordances(context.Context) (*Faceting, error)
+	HasConcordance(context.Context, pagination.Options, string, string, any, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+	HasConcordanceFaceted(context.Context, string, string, any, []Filter, []*Facet) ([]*Faceting, error)
+
+	VisitingNullIsland(context.Context, pagination.Options, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+	VisitingNullIslandFaceted(context.Context, []Filter, []*Facet) ([]*Faceting, error)
 
 	// TBD...
 	// Unclear whether this should implement all of https://github.com/whosonfirst/go-whosonfirst-spatial/blob/main/spatial.go#L11
@@ -68,163 +80,6 @@ type Spelunker interface {
 	//
 	// PointInPolygon(context.Context, orb.Point) (spr.StandardPlacesResults, error)
 
-	// Not implemented yet
-
-	/*
-		GetCurrent(context.Context) ([][]byte, error)
-
-		GetPlacetypes(context.Context) ([]placetypes.WOFPlacetype, error)
-		GetPlacetype(context.Context, string) (placetypes.WOFPlacetype, error)
-
-		GetFacetsForRecent(context.Context) (*Facets, error)
-		GetFacetsForDescendants(context.Context, int64) (*Facets, error)
-		GetFacetsForCurrent(context.Context) (*Facets, error)
-		GetFacetsForPlacetype(context.Context) (*Facets, error)
-		GetFacetsForSearch(context.Context, *SearchOptions) (*Facets, error)
-
-		GetLanguages(context.Context) ([]*Language, error)
-		GetLanguage(context.Context, string) (*Language, error)
-	*/
-
-	// TBD
-
-	/*
-
-		www/server.py:@app.route("/languages", methods=["GET"])
-		www/server.py:@app.route("/languages/", methods=["GET"])
-		www/server.py:@app.route("/languages/spoken", methods=["GET"])
-		www/server.py:@app.route("/languages/spoken/", methods=["GET"])
-		www/server.py:@app.route("/languages/<string:lang>", methods=["GET"])
-		www/server.py:@app.route("/languages/<string:lang>/", methods=["GET"])
-		www/server.py:@app.route("/languages/<string:lang>/facets", methods=["GET"])
-		www/server.py:@app.route("/languages/<string:lang>/facets/", methods=["GET"])
-		www/server.py:@app.route("/languages/spoken/<string:lang>", methods=["GET"])
-		www/server.py:@app.route("/languages/spoken/<string:lang>/", methods=["GET"])
-		www/server.py:@app.route("/languages/<string:lang>/spoken", methods=["GET"])
-		www/server.py:@app.route("/languages/<string:lang>/spoken/", methods=["GET"])
-		www/server.py:@app.route("/languages/spoken/<string:lang>/facets", methods=["GET"])
-		www/server.py:@app.route("/languages/spoken/<string:lang>/facets/", methods=["GET"])
-		www/server.py:@app.route("/languages/<string:lang>/spoken/facets", methods=["GET"])
-		www/server.py:@app.route("/languages/<string:lang>/spoken/facets/", methods=["GET"])
-		www/server.py:@app.route("/concordances/", methods=["GET"])
-		www/server.py:@app.route("/concordances/", methods=["GET"])
-		www/server.py:@app.route("/concordances/<string:who>", methods=["GET"])
-		www/server.py:@app.route("/concordances/<string:who>/", methods=["GET"])
-		www/server.py:@app.route("/concordances/<string:who>/facets", methods=["GET"])
-		www/server.py:@app.route("/concordances/<string:who>/facets/", methods=["GET"])
-		www/server.py:@app.route("/geonames/", methods=["GET"])
-		www/server.py:@app.route("/gn/", methods=["GET"])
-		www/server.py:@app.route("/geoplanet/", methods=["GET"])
-		www/server.py:@app.route("/gp/", methods=["GET"])
-		www/server.py:@app.route("/woe", methods=["GET"])
-		www/server.py:@app.route("/woe/", methods=["GET"])
-		www/server.py:@app.route("/tgn/", methods=["GET"])
-		www/server.py:@app.route("/wikidata/", methods=["GET"])
-		www/server.py:@app.route("/wd/", methods=["GET"])
-		www/server.py:@app.route("/geoplanet/id/<int:id>", methods=["GET"])
-		www/server.py:@app.route("/geoplanet/id/<int:id>/", methods=["GET"])
-		www/server.py:@app.route("/woe/id/<int:id>", methods=["GET"])
-		www/server.py:@app.route("/woe/id/<int:id>/", methods=["GET"])
-		www/server.py:@app.route("/geonames/id/<int:id>", methods=["GET"])
-		www/server.py:@app.route("/geonames/id/<int:id>/", methods=["GET"])
-		www/server.py:@app.route("/quattroshapes/id/<int:id>", methods=["GET"])
-		www/server.py:@app.route("/quattroshapes/id/<int:id>/", methods=["GET"])
-		www/server.py:@app.route("/factual/id/<id>", methods=["GET"])
-		www/server.py:@app.route("/factual/id/<id>/", methods=["GET"])
-		www/server.py:@app.route("/simplegeo/id/<id>", methods=["GET"])
-		www/server.py:@app.route("/simplegeo/id/<id>/", methods=["GET"])
-		www/server.py:@app.route("/sg/id/<id>", methods=["GET"])
-		www/server.py:@app.route("/sg/id/<id>/", methods=["GET"])
-		www/server.py:@app.route("/faa/id/<id>", methods=["GET"])
-		www/server.py:@app.route("/faa/id/<id>/", methods=["GET"])
-		www/server.py:@app.route("/iata/id/<id>", methods=["GET"])
-		www/server.py:@app.route("/iata/id/<id>/", methods=["GET"])
-		www/server.py:@app.route("/icao/id/<id>", methods=["GET"])
-		www/server.py:@app.route("/icao/id/<id>/", methods=["GET"])
-		www/server.py:@app.route("/ourairports/id/<int:id>", methods=["GET"])
-		www/server.py:@app.route("/ourairports/id/<int:id>/", methods=["GET"])
-		www/server.py:@app.route("/id/<int:id>/descendants", methods=["GET"])
-		www/server.py:@app.route("/id/<int:id>/descendants/", methods=["GET"])
-		www/server.py:@app.route("/id/<int:id>/descendants/facets", methods=["GET"])
-		www/server.py:@app.route("/id/<int:id>/descendants/facets/", methods=["GET"])
-		www/server.py:@app.route("/megacities", methods=["GET"])
-		www/server.py:@app.route("/megacities/", methods=["GET"])
-		www/server.py:@app.route("/megacities/facets", methods=["GET"])
-		www/server.py:@app.route("/megacities/facets/", methods=["GET"])
-		www/server.py:@app.route("/nullisland", methods=["GET"])
-		www/server.py:@app.route("/nullisland/", methods=["GET"])
-		www/server.py:@app.route("/nullisland/facets", methods=["GET"])
-		www/server.py:@app.route("/nullisland/facets/", methods=["GET"])
-		www/server.py:@app.route("/placetypes", methods=["GET"])
-		www/server.py:@app.route("/placetypes/", methods=["GET"])
-		www/server.py:@app.route("/placetypes/<placetype>", methods=["GET"])
-		www/server.py:@app.route("/placetypes/<placetype>/", methods=["GET"])
-		www/server.py:@app.route("/placetypes/<placetype>/facets", methods=["GET"])
-		www/server.py:@app.route("/placetypes/<placetype>/facets/", methods=["GET"])
-		www/server.py:@app.route("/machinetags", methods=["GET"])
-		www/server.py:@app.route("/machinetags/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/namespaces", methods=["GET"])
-		www/server.py:@app.route("/machinetags/namespaces/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/namespaces/<string:ns>", methods=["GET"])
-		www/server.py:@app.route("/machinetags/namespaces/<string:ns>/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/namespaces/<string:ns>/predicates", methods=["GET"])
-		www/server.py:@app.route("/machinetags/namespaces/<string:ns>/predicates/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/namespaces/<string:ns>/values", methods=["GET"])
-		www/server.py:@app.route("/machinetags/namespaces/<string:ns>/values/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/predicates", methods=["GET"])
-		www/server.py:@app.route("/machinetags/predicates/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/predicates/<string:pred>", methods=["GET"])
-		www/server.py:@app.route("/machinetags/predicates/<string:pred>/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/predicates/<string:pred>/namespaces", methods=["GET"])
-		www/server.py:@app.route("/machinetags/predicates/<string:pred>/namespaces/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/predicates/<string:pred>/values", methods=["GET"])
-		www/server.py:@app.route("/machinetags/predicates/<string:pred>/values/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/values", methods=["GET"])
-		www/server.py:@app.route("/machinetags/values/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/values/<string:value>", methods=["GET"])
-		www/server.py:@app.route("/machinetags/values/<string:value>/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/values/<string:value>/namespaces", methods=["GET"])
-		www/server.py:@app.route("/machinetags/values/<string:value>/namespaces/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/values/<string:value>/predicates", methods=["GET"])
-		www/server.py:@app.route("/machinetags/values/<string:value>/predicates/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/places/<string:ns_or_mt>", methods=["GET"])
-		www/server.py:@app.route("/machinetags/places/<string:ns_or_mt>/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/places/<string:ns>/<string:pred>", methods=["GET"])
-		www/server.py:@app.route("/machinetags/places/<string:ns>/<string:pred>/", methods=["GET"])
-		www/server.py:@app.route("/machinetags/places/<string:ns>/<string:pred>/<string:value>", methods=["GET"])
-		www/server.py:@app.route("/machinetags/places/<string:ns>/<string:pred>/<string:value>/", methods=["GET"])
-		www/server.py:@app.route("/tags", methods=["GET"])
-		www/server.py:@app.route("/tags/", methods=["GET"])
-		www/server.py:@app.route("/names", methods=["GET"])
-		www/server.py:@app.route("/names/", methods=["GET"])
-		www/server.py:@app.route("/tags/<tag>", methods=["GET"])
-		www/server.py:@app.route("/tags/<tag>/", methods=["GET"])
-		www/server.py:@app.route("/tags/<tag>/fatets", methods=["GET"])
-		www/server.py:@app.route("/tags/<tag>/facets/", methods=["GET"])
-		www/server.py:@app.route("/categories/<category>", methods=["GET"])
-		www/server.py:@app.route("/categories/<category>/", methods=["GET"])
-		www/server.py:@app.route("/categories/<category>/facets", methods=["GET"])
-		www/server.py:@app.route("/categories/<category>/facets/", methods=["GET"])
-		www/server.py:@app.route("/postalcode/<code>", methods=["GET"])
-		www/server.py:@app.route("/postalcode/<code>/", methods=["GET"])
-		www/server.py:@app.route("/postalcodes/<code>", methods=["GET"])
-		www/server.py:@app.route("/postalcodes/<code>/", methods=["GET"])
-		www/server.py:@app.route("/postalcode/<code>/facets", methods=["GET"])
-		www/server.py:@app.route("/postalcode/<code>/facets/", methods=["GET"])
-		www/server.py:@app.route("/postalcodes/<code>/facets", methods=["GET"])
-		www/server.py:@app.route("/postalcodes/<code>/facets/", methods=["GET"])
-		www/server.py:@app.route("/opensearch", methods=["GET"])
-		www/server.py:@app.route("/opensearch/", methods=["GET"])
-		www/server.py:@app.route("/opensearch/<scope>", methods=["GET"])
-		www/server.py:@app.route("/opensearch/<scope>/", methods=["GET"])
-		www/server.py:@app.route("/search", methods=["GET"])
-		www/server.py:@app.route("/search/", methods=["GET"])
-		www/server.py:@app.route("/auth", methods=["GET"])
-		www/server.py:@app.route("/auth/", methods=["GET"])
-		www/server.py:@app.route("/search/facets", methods=["GET"])
-		www/server.py:@app.route("/search/facets/", methods=["GET"])
-
-	*/
 }
 
 // RegisterSpelunker registers 'scheme' as a key pointing to 'init_func' in an internal lookup table

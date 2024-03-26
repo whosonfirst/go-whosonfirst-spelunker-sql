@@ -8,9 +8,10 @@
 
 <div id="map-wrapper">
     <img src="{{ URIForId .URIs.SVG .Id }}" id="map-svg" loading="lazy" />
-    <div id="map" data-wof-id="{{ .Id }}"></div>
-    <p>{{ GjsonGet .Properties "wof:name" }} is a <span class="hey-look">{{ GjsonGet .Properties "wof:placetype" }}</span> and its consensus geometry is derived from <span class="hey-look">{{ GjsonGet .Properties "src:geom" }}</span>.</p>
+    <div id="map" data-wof-id="{{ .Id }}" data-tiles-url="{{ .URIs.Tiles }}"></div>
 </div>
+
+<p>{{ GjsonGet .Properties "wof:name" }} is a <span class="hey-look">{{ GjsonGet .Properties "wof:placetype" }}</span> and its consensus geometry is derived from <span class="hey-look">{{ GjsonGet .Properties "src:geom" }}</span>.</p>
 
 <div id="whosonfirst-alt-geoms">
 {{/* This is populated by whosonfirst.spelunker.id.init.js */}}

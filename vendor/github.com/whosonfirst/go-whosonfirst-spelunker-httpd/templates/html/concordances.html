@@ -3,7 +3,7 @@
 
 <ul class="whosonfirst-facets">
     {{ range $i, $f := .Facets -}}
-    <li><a href="{{ $.URIs.Concordances }}{{ $f.Key }}" class="hey-look">{{ $f.Key }}</a> <code>{{ NameForSource $f.Key }}</code> <small>{{ $f.Count }}</small></li>
+    <li><a href="{{ $.URIs.Concordances }}/{{ $f.Key }}" class="hey-look">{{ $f.Key }}</a> <code>{{ NameForSource $f.Key }}</code> <small>{{ $f.Count }}</small></li>
     {{ end -}}
 </ul>
 

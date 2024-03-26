@@ -10,7 +10,6 @@ import (
 
 	"github.com/sfomuseum/go-http-auth"
 	"github.com/tidwall/gjson"
-	"github.com/whosonfirst/go-whosonfirst-feature/properties"
 	"github.com/whosonfirst/go-whosonfirst-placetypes"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd"
@@ -87,16 +86,15 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		logger = logger.With("request id", req_id)
 		logger = logger.With("wof id", wof_id)
 
-		f, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)
-
+		f, err := opts.Spelunker.GetRecordForId(ctx, wof_id)
+		
 		if err != nil {
 			slog.Error("Failed to get by ID", "error", err)
 			http.Error(rsp, spelunker.ErrNotFound.Error(), http.StatusNotFound)
 			return
 		}
 
-		props := gjson.GetBytes(f, "properties")
-		page_title := gjson.GetBytes(f, "properties.wof:name")
+		page_title := gjson.GetBytes(f, "wof:name")
 
 		rel_path, err := uri.Id2RelPath(wof_id, req_uri.URIArgs)
 
@@ -106,7 +104,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 			return
 		}
 
-		repo_name := gjson.GetBytes(f, "properties.wof:repo")
+		repo_name := gjson.GetBytes(f, "wof:repo")
 
 		github_url := fmt.Sprintf("https://github.com/whosonfirst-data/%s/blob/master/data/%s", repo_name, rel_path)
 
@@ -114,7 +112,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 			Id:         wof_id,
 			RequestId:  req_id,
 			URIArgs:    req_uri.URIArgs,
-			Properties: props.String(),
+			Properties: string(f),
 			PageTitle:  page_title.String(),
 			GitHubURL:  github_url,
 			URIs:       opts.URIs,
@@ -145,7 +143,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 
 		// START OF there's got to be a better way to do this...
 
-		str_pt := gjson.GetBytes(f, "properties.wof:placetype")
+		str_pt := gjson.GetBytes(f, "wof:placetype")
 
 		pt, err := placetypes.GetPlacetypeByName(str_pt.String())
 
@@ -171,8 +169,26 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 			sorted = append(sorted, n.String())
 		}
 
-		hierarchies := properties.Hierarchies(f)
+		// hierarchies := properties.Hierarchies(f)
 
+		hierarchies := make([]map[string]int64, 0)
+		
+		h_rsp := gjson.GetBytes(f, "wof:hierarchy")
+
+		if h_rsp.Exists() {
+
+			for _, h := range h_rsp.Array() {
+
+				dict := make(map[string]int64)
+				
+				for k, v := range h.Map() {
+					dict[k] = v.Int()
+				}
+				
+				hierarchies = append(hierarchies, dict)
+			}
+		}
+		
 		handler_hierarchies := make([][]*IdHandlerAncestor, len(hierarchies))
 
 		for idx, hier := range hierarchies {
@@ -221,3 +237,4 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 	h := http.HandlerFunc(fn)
 	return h, nil
 }
+

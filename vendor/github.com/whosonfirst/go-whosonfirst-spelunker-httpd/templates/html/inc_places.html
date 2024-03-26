@@ -1,16 +1,16 @@
 {{ define "inc_places" -}}
 <div id="map-wrapper">
-    <div id="map"></div>
+    <div id="map" data-tiles-url="{{ .URIs.Tiles }}"></div>
 </div>
 
 <div class="pagination-counts">
     {{ if (IsAvailable "Pagination" .) -}}
-    {{ if eq .Pagination.TotalCount 0 -}}
+    {{ if eq .Pagination.Total 0 -}}
     <p>There are no places</p>
-    {{ else if eq .Pagination.TotalCount 1 -}}
+    {{ else if eq .Pagination.Total 1 -}}
     <p>There is <span class="hey-look">one place</span></p>
     {{ else -}}
-    <p>There are <span class="hey-look">{{ .Pagination.TotalCount }}</span> places and this is <span class="hey-look">page {{ .Pagination.Page }}</span> of <span class="hey-look">{{ .Pagination.Pages }}</span></p>
+    <p>There are <span class="hey-look">{{ FormatNumber .Pagination.Total }}</span> places{{ if gt .Pagination.Pages 1 }} and this is <span class="hey-look">{{if eq .Pagination.Page -1 }}one page{{ else }}page {{ FormatNumber .Pagination.Page }}{{ end }}</span> of <span class="hey-look">{{ FormatNumber .Pagination.Pages }}{{ end }}</span></p>
     {{ end -}}
     {{ end -}}
 </div>
@@ -32,12 +32,14 @@
 	</ul>
     </div>   
     <div id="whosonfirst-places-other">
+	{{ if gt (len .Places) 0 -}}
 	{{ if (IsAvailable "FacetsURL" .) -}}
 	{{ if (IsAvailable "FacetsContextURL" .) -}}	
-	<div id="whosonfirst-facets" data-current-url="{{ $.FacetsContextURL }}" data-facets-url="{{ $.FacetsURL }}" data-facets="country,placetype">
+	<div id="whosonfirst-facets" data-current-url="{{ $.FacetsContextURL }}" data-facets-url="{{ $.FacetsURL }}" data-facets="country,placetype,iscurrent">
 	    {{ end -}}
 	{{ end -}}	    
 	</div>
+	{{ end -}}
     </div>
 </div>
 

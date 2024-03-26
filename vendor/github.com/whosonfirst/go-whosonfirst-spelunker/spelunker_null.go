@@ -37,7 +37,7 @@ func (s *NullSpelunker) CountDescendants(ctx context.Context, id int64) (int64, 
 	return 0, ErrNotImplemented
 }
 
-func (s *NullSpelunker) Search(ctx context.Context, pg_opts pagination.Options, q *SearchOptions) (spr.StandardPlacesResults, pagination.Results, error) {
+func (s *NullSpelunker) Search(ctx context.Context, pg_opts pagination.Options, q *SearchOptions, filters []Filter) (spr.StandardPlacesResults, pagination.Results, error) {
 	return nil, nil, ErrNotImplemented
 }
 

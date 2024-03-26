@@ -16,6 +16,18 @@ p {
     color:#333;
 }
 
+.leaflet-control-attribution {
+	display:none;
+}
+
+#map-wrapper:after {
+	display: flex;
+	justify-content: right;
+	font-size: x-small;
+	color: #666;
+	content: "Map data © OpenStreetMap";
+}
+
 .rel-path {
 	display: block;
 	font-size:small;

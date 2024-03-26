@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/aaronland/go-pagination"
-	"github.com/aaronland/go-pagination/countable"
 	"github.com/sfomuseum/go-http-auth"
 	"github.com/whosonfirst/go-whosonfirst-placetypes"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
@@ -60,7 +59,7 @@ func HasPlacetypeHandler(opts *HasPlacetypeHandlerOptions) (http.Handler, error)
 			return
 		}
 
-		pg_opts, err := countable.NewCountableOptions()
+		pg_opts, err := httpd.PaginationOptionsFromRequest(req)
 
 		if err != nil {
 			logger.Error("Failed to create pagination options", "error", err)
@@ -68,17 +67,7 @@ func HasPlacetypeHandler(opts *HasPlacetypeHandlerOptions) (http.Handler, error)
 			return
 		}
 
-		pg, pg_err := httpd.ParsePageNumberFromRequest(req)
-
-		if pg_err == nil {
-			logger = logger.With("page", pg)
-			pg_opts.Pointer(pg)
-		}
-
-		filter_params := []string{
-			"placetype",
-			"country",
-		}
+		filter_params := httpd.DefaultFilterParams()
 
 		filters, err := httpd.FiltersFromRequest(ctx, req, filter_params)
 
@@ -96,15 +85,21 @@ func HasPlacetypeHandler(opts *HasPlacetypeHandlerOptions) (http.Handler, error)
 			return
 		}
 
-		pagination_url := fmt.Sprintf("%s?", req.URL.Path)
+		pagination_url := httpd.URIForPlacetype(opts.URIs.Placetype, pt.Name, filters, nil)
+
+		// This is not ideal but I am not sure what is better yet...
+		facets_url := httpd.URIForPlacetype(opts.URIs.PlacetypeFaceted, pt.Name, filters, nil)
+		facets_context_url := req.URL.Path
 
 		vars := HasPlacetypeHandlerVars{
-			PageTitle:     pt.Name,
-			URIs:          opts.URIs,
-			Placetype:     pt,
-			Places:        r.Results(),
-			Pagination:    pg_r,
-			PaginationURL: pagination_url,
+			PageTitle:        pt.Name,
+			URIs:             opts.URIs,
+			Placetype:        pt,
+			Places:           r.Results(),
+			Pagination:       pg_r,
+			PaginationURL:    pagination_url,
+			FacetsURL:        facets_url,
+			FacetsContextURL: facets_context_url,
 		}
 
 		rsp.Header().Set("Content-Type", "text/html")

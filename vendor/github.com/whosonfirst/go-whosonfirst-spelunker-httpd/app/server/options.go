@@ -26,6 +26,7 @@ type RunOptions struct {
 	HTMLTemplateFuncs html_template.FuncMap               `json:"template_funcs,omitempty"`
 	StaticAssets      io_fs.FS                            `json:"static_assets,omitempty"`
 	CustomHandlers    map[string]handler.RouteHandlerFunc `json:"custom_handlers,omitempty"`
+	ProtomapsApiKey   string                              `json:"protomaps_api_key"`
 }
 
 func (o *RunOptions) Clone() (*RunOptions, error) {
@@ -71,8 +72,12 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		"FormatStringTime": sfom_funcs.FormatStringTime,
 		"FormatUnixTime":   sfom_funcs.FormatUnixTime,
 		"GjsonGet":         sfom_funcs.GjsonGet,
-		"URIForId":         httpd.URIForId,
+		// https://github.com/golang/go/issues/57773
+		"URIForId":         httpd.URIForIdSimple,
+		"URIForRecent":     httpd.URIForRecentSimple,
 		"NameForSource":    wof_funcs.NameForSource,
+		"FormatNumber":     wof_funcs.FormatNumber,
+		"AppendPagination": wof_funcs.AppendPagination,
 	}
 
 	opts := &RunOptions{
@@ -83,6 +88,7 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		HTMLTemplates:     []io_fs.FS{html.FS},
 		HTMLTemplateFuncs: t_funcs,
 		StaticAssets:      static.FS,
+		ProtomapsApiKey:   protomaps_api_key,
 	}
 
 	return opts, nil
