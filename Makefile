@@ -7,6 +7,7 @@ SPELUNKER_URI=sql://sqlite3?dsn=file:/usr/local/data/xy.db
 server:
 	go run -mod $(GOMOD) -tags "icu json1 fts5" cmd/httpd/main.go \
 		-server-uri http://localhost:8080 \
+		-protomaps-api-key '$(APIKEY)' \
 		-spelunker-uri $(SPELUNKER_URI)
 
 		# -spelunker-uri $(SPELUNKER_URI) 
