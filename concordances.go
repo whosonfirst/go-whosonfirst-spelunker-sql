@@ -3,6 +3,7 @@ package sql
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/aaronland/go-pagination"
@@ -62,6 +63,8 @@ func (s *SQLSpelunker) GetConcordances(ctx context.Context) (*spelunker.Faceting
 
 	return faceting, nil
 }
+
+// TO DO: filters
 
 func (s *SQLSpelunker) HasConcordance(ctx context.Context, pg_opts pagination.Options, namespace string, predicate string, value any, filters []spelunker.Filter) (wof_spr.StandardPlacesResults, pagination.Results, error) {
 
@@ -153,6 +156,91 @@ func (s *SQLSpelunker) HasConcordance(ctx context.Context, pg_opts pagination.Op
 }
 
 func (s *SQLSpelunker) HasConcordanceFaceted(ctx context.Context, namespace string, predicate string, value any, filters []spelunker.Filter, facets []*spelunker.Facet) ([]*spelunker.Faceting, error) {
-	// TO DO
-	return nil, spelunker.ErrNotImplemented
+
+	where := make([]string, 0)
+	args := make([]interface{}, 0)
+
+	switch {
+	case namespace != "" && predicate != "":
+		where = append(where, "other_source = ?")
+		args = append(args, fmt.Sprintf("%s:%s", namespace, predicate))
+	case namespace != "":
+		where = append(where, "other_source LIKE ?")
+		args = append(args, namespace+":%")
+	case predicate != "":
+		where = append(where, "other_source LIKE ?")
+		args = append(args, "%:"+predicate)
+	default:
+		return nil, fmt.Errorf("Missing namespace and predicate")
+	}
+
+	if value != "" {
+		where = append(where, "other_id = ?")
+		args = append(args, value)
+	}
+
+	str_where := strings.Join(where, " AND ")
+
+	// TO DO: filters
+
+	facetings := make([]*spelunker.Faceting, len(facets))
+
+	for idx, f := range facets {
+
+		// TO DO: iscurrent / is_current
+		
+		/*
+
+			SELECT spr.country AS country, COUNT(spr.id) AS count FROM spr LEFT JOIN concordances ON spr.id = concordances.id WHERE concordances.other_source LIKE 'wd:%' GROUP BY country ORDER BY count DESC;
+		*/
+
+		q := fmt.Sprintf("SELECT %s.%s AS %s, COUNT(%s.id) AS count FROM %s LEFT JOIN %s ON %s.id = %s.id WHERE %s GROUP BY %s ORDER BY count DESC",
+			tables.SPR_TABLE_NAME,
+			f.Property,
+			f.Property,
+			tables.SPR_TABLE_NAME,
+			tables.SPR_TABLE_NAME,
+			tables.CONCORDANCES_TABLE_NAME,
+			tables.SPR_TABLE_NAME,
+			tables.CONCORDANCES_TABLE_NAME,
+			str_where,
+			f.Property,
+		)
+
+		rows, err := s.db.QueryContext(ctx, q, args...)
+
+		if err != nil {
+			return nil, err
+		}
+
+		facet_counts := make([]*spelunker.FacetCount, 0)
+
+		for rows.Next() {
+
+			var key string
+			var count int64
+
+			err := rows.Scan(&key, &count)
+
+			if err != nil {
+				return nil, fmt.Errorf("Failed to scan row, %w", err)
+			}
+
+			fc := &spelunker.FacetCount{
+				Key:   key,
+				Count: count,
+			}
+
+			facet_counts = append(facet_counts, fc)
+		}
+
+		faceting := &spelunker.Faceting{
+			Facet:   f,
+			Results: facet_counts,
+		}
+
+		facetings[idx] = faceting
+	}
+
+	return facetings, nil
 }
