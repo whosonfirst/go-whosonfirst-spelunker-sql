@@ -3,7 +3,7 @@ package sql
 import (
 	"context"
 	"fmt"
-	"log/slog"
+	_ "log/slog"
 	"strings"
 
 	"github.com/aaronland/go-pagination"
@@ -187,24 +187,34 @@ func (s *SQLSpelunker) HasConcordanceFaceted(ctx context.Context, namespace stri
 
 	for idx, f := range facets {
 
-		// TO DO: iscurrent / is_current
+		var facet_label string
+
+		switch f.Property {
+		case "iscurrent":
+			facet_label = "is_current"
+		default:
+			facet_label = f.Property
+		}
 		
 		/*
 
-			SELECT spr.country AS country, COUNT(spr.id) AS count FROM spr LEFT JOIN concordances ON spr.id = concordances.id WHERE concordances.other_source LIKE 'wd:%' GROUP BY country ORDER BY count DESC;
+			SELECT spr.country AS country, COUNT(spr.id) AS count
+			FROM spr LEFT JOIN concordances ON spr.id = concordances.id
+			WHERE concordances.other_source LIKE 'wd:%'
+			GROUP BY country ORDER BY count DESC;
 		*/
 
 		q := fmt.Sprintf("SELECT %s.%s AS %s, COUNT(%s.id) AS count FROM %s LEFT JOIN %s ON %s.id = %s.id WHERE %s GROUP BY %s ORDER BY count DESC",
 			tables.SPR_TABLE_NAME,
-			f.Property,
-			f.Property,
+			facet_label,
+			facet_label,
 			tables.SPR_TABLE_NAME,
 			tables.SPR_TABLE_NAME,
 			tables.CONCORDANCES_TABLE_NAME,
 			tables.SPR_TABLE_NAME,
 			tables.CONCORDANCES_TABLE_NAME,
 			str_where,
-			f.Property,
+			facet_label,
 		)
 
 		rows, err := s.db.QueryContext(ctx, q, args...)
