@@ -64,35 +64,80 @@ func (s *SQLSpelunker) GetConcordances(ctx context.Context) (*spelunker.Faceting
 	return faceting, nil
 }
 
-// TO DO: filters
-
 func (s *SQLSpelunker) HasConcordance(ctx context.Context, pg_opts pagination.Options, namespace string, predicate string, value any, filters []spelunker.Filter) (wof_spr.StandardPlacesResults, pagination.Results, error) {
+
+	var q string
 
 	where := make([]string, 0)
 	args := make([]interface{}, 0)
 
-	switch {
-	case namespace != "" && predicate != "":
-		where = append(where, "other_source = ?")
-		args = append(args, fmt.Sprintf("%s:%s", namespace, predicate))
-	case namespace != "":
-		where = append(where, "other_source LIKE ?")
-		args = append(args, namespace+":%")
-	case predicate != "":
-		where = append(where, "other_source LIKE ?")
-		args = append(args, "%:"+predicate)
-	default:
-		return nil, nil, fmt.Errorf("Missing namespace and predicate")
+	if len(filters) == 0 {
+
+		switch {
+		case namespace != "" && predicate != "":
+			where = append(where, "other_source = ?")
+			args = append(args, fmt.Sprintf("%s:%s", namespace, predicate))
+		case namespace != "":
+			where = append(where, "other_source LIKE ?")
+			args = append(args, namespace+":%")
+		case predicate != "":
+			where = append(where, "other_source LIKE ?")
+			args = append(args, "%:"+predicate)
+		default:
+			return nil, nil, fmt.Errorf("Missing namespace and predicate")
+		}
+
+		if value != "" {
+			where = append(where, "other_id = ?")
+			args = append(args, value)
+		}
+
+		// slog.Info("WHERE", "where", where, "args", args)
+		str_where := strings.Join(where, " AND ")
+
+		q = fmt.Sprintf("SELECT id FROM %s WHERE %s", tables.CONCORDANCES_TABLE_NAME, str_where)
+
+	} else {
+
+		switch {
+		case namespace != "" && predicate != "":
+			where = append(where, fmt.Sprintf("%s.other_source = ?", tables.CONCORDANCES_TABLE_NAME))
+			args = append(args, fmt.Sprintf("%s:%s", namespace, predicate))
+		case namespace != "":
+			where = append(where, fmt.Sprintf("%s.other_source LIKE ?", tables.CONCORDANCES_TABLE_NAME))
+			args = append(args, namespace+":%")
+		case predicate != "":
+			where = append(where, fmt.Sprintf("%s.other_source LIKE ?", tables.CONCORDANCES_TABLE_NAME))
+			args = append(args, "%:"+predicate)
+		default:
+			return nil, nil, fmt.Errorf("Missing namespace and predicate")
+		}
+
+		if value != "" {
+			where = append(where, fmt.Sprintf("%s.other_id = ?", tables.CONCORDANCES_TABLE_NAME))
+			args = append(args, value)
+		}
+
+		for _, f := range filters {
+			where = append(where, fmt.Sprintf("%s.%s = ?", tables.SPR_TABLE_NAME, f.Scheme()))
+			args = append(args, f.Value())
+		}
+
+		// slog.Info("WHERE", "where", where, "args", args)
+		str_where := strings.Join(where, " AND ")
+
+		q = fmt.Sprintf("SELECT %s.id AS id FROM %s LEFT JOIN %s ON %s.id = %s.id WHERE %s",
+			tables.SPR_TABLE_NAME,
+			tables.SPR_TABLE_NAME,
+			tables.CONCORDANCES_TABLE_NAME,
+			tables.SPR_TABLE_NAME,
+			tables.CONCORDANCES_TABLE_NAME,
+			str_where,
+		)
+
 	}
 
-	if value != "" {
-		where = append(where, "other_id = ?")
-		args = append(args, value)
-	}
-
-	str_where := strings.Join(where, " AND ")
-
-	q := fmt.Sprintf("SELECT id FROM %s WHERE %s", tables.CONCORDANCES_TABLE_NAME, str_where)
+	// slog.Info("QUERY", "q", q, "args", args)
 
 	rows, err := s.db.QueryContext(ctx, q, args...)
 
@@ -162,29 +207,36 @@ func (s *SQLSpelunker) HasConcordanceFaceted(ctx context.Context, namespace stri
 
 	switch {
 	case namespace != "" && predicate != "":
-		where = append(where, "other_source = ?")
+		where = append(where, fmt.Sprintf("%s.other_source = ?", tables.CONCORDANCES_TABLE_NAME))
 		args = append(args, fmt.Sprintf("%s:%s", namespace, predicate))
 	case namespace != "":
-		where = append(where, "other_source LIKE ?")
+		where = append(where, fmt.Sprintf("%s.other_source LIKE ?", tables.CONCORDANCES_TABLE_NAME))
 		args = append(args, namespace+":%")
 	case predicate != "":
-		where = append(where, "other_source LIKE ?")
+		where = append(where, fmt.Sprintf("%s.other_source LIKE ?", tables.CONCORDANCES_TABLE_NAME))
 		args = append(args, "%:"+predicate)
 	default:
 		return nil, fmt.Errorf("Missing namespace and predicate")
 	}
 
 	if value != "" {
-		where = append(where, "other_id = ?")
+		where = append(where, fmt.Sprintf("%s.other_id = ?", tables.CONCORDANCES_TABLE_NAME))
 		args = append(args, value)
 	}
 
-	str_where := strings.Join(where, " AND ")
+	for _, f := range filters {
+		where = append(where, fmt.Sprintf("%s.%s = ?", tables.SPR_TABLE_NAME, f.Scheme()))
+		args = append(args, f.Value())
+	}
 
-	// TO DO: filters
+	// slog.Info("WHERE", "where", where, "args", args)
+
+	str_where := strings.Join(where, " AND ")
 
 	facetings := make([]*spelunker.Faceting, len(facets))
 
+	// START OF do this in go routines
+	
 	for idx, f := range facets {
 
 		var facet_label string
@@ -195,14 +247,6 @@ func (s *SQLSpelunker) HasConcordanceFaceted(ctx context.Context, namespace stri
 		default:
 			facet_label = f.Property
 		}
-		
-		/*
-
-			SELECT spr.country AS country, COUNT(spr.id) AS count
-			FROM spr LEFT JOIN concordances ON spr.id = concordances.id
-			WHERE concordances.other_source LIKE 'wd:%'
-			GROUP BY country ORDER BY count DESC;
-		*/
 
 		q := fmt.Sprintf("SELECT %s.%s AS %s, COUNT(%s.id) AS count FROM %s LEFT JOIN %s ON %s.id = %s.id WHERE %s GROUP BY %s ORDER BY count DESC",
 			tables.SPR_TABLE_NAME,
@@ -216,6 +260,8 @@ func (s *SQLSpelunker) HasConcordanceFaceted(ctx context.Context, namespace stri
 			str_where,
 			facet_label,
 		)
+
+		// slog.Info("QUERY", "q", q, "args", args)
 
 		rows, err := s.db.QueryContext(ctx, q, args...)
 
@@ -252,5 +298,7 @@ func (s *SQLSpelunker) HasConcordanceFaceted(ctx context.Context, namespace stri
 		facetings[idx] = faceting
 	}
 
+	// END OF do this in go routines
+	
 	return facetings, nil
 }
