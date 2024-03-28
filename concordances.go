@@ -236,7 +236,7 @@ func (s *SQLSpelunker) HasConcordanceFaceted(ctx context.Context, namespace stri
 	facetings := make([]*spelunker.Faceting, len(facets))
 
 	// START OF do this in go routines
-	
+
 	for idx, f := range facets {
 
 		var facet_label string
@@ -299,6 +299,6 @@ func (s *SQLSpelunker) HasConcordanceFaceted(ctx context.Context, namespace stri
 	}
 
 	// END OF do this in go routines
-	
+
 	return facetings, nil
 }

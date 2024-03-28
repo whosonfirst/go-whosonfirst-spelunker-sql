@@ -11,7 +11,7 @@ import (
 	"context"
 	db_sql "database/sql"
 	"fmt"
-	_ "log/slog"
+	// "log/slog"
 	"strings"
 
 	"github.com/aaronland/go-pagination"
@@ -147,38 +147,6 @@ func (s *SQLSpelunker) GetDescendants(ctx context.Context, pg_opts pagination.Op
 	}
 
 	return spr_results, pg_results, nil
-
-	// The old way - this doesn't work with the sqlite vfs stuff
-
-	/*
-
-		where := []string{
-			"instr(belongsto, ?) > 0",
-		}
-
-		args := []interface{}{
-			id,
-		}
-
-		for _, f := range filters {
-
-			switch f.Scheme() {
-			case spelunker.COUNTRY_FILTER_SCHEME:
-				where = append(where, "country = ?")
-				args = append(args, f.Value())
-			case spelunker.PLACETYPE_FILTER_SCHEME:
-				where = append(where, "placetype = ?")
-				args = append(args, f.Value())
-			default:
-				return nil, nil, fmt.Errorf("Invalid or unsupported filter scheme, %s", f.Scheme())
-			}
-
-		}
-
-		str_where := strings.Join(where, " AND ")
-
-		return s.querySPR(ctx, pg_opts, str_where, args...)
-	*/
 }
 
 func (s *SQLSpelunker) GetDescendantsFaceted(ctx context.Context, id int64, filters []spelunker.Filter, facets []*spelunker.Facet) ([]*spelunker.Faceting, error) {
@@ -189,27 +157,32 @@ func (s *SQLSpelunker) GetDescendantsFaceted(ctx context.Context, id int64, filt
 		return nil, fmt.Errorf("Failed to derive query where statement, %w", err)
 	}
 
+	results := make([]*spelunker.Faceting, len(facets))
+
 	// START OF do this in go routines
+	
+	for idx, f := range facets {
 
-	f := facets[0]
-
-	q := s.descendantsQueryFacetStatement(ctx, f, q_where)
-
-	counts, err := s.facetWithQuery(ctx, q, q_args...)
-
-	if err != nil {
-		return nil, fmt.Errorf("Failed to facet columns, %w", err)
-	}
-
-	results := []*spelunker.Faceting{
-		&spelunker.Faceting{
+		q := s.descendantsQueryFacetStatement(ctx, f, q_where)
+		
+		// slog.Info("FACET", "q", q, "args", q_args)
+		
+		counts, err := s.facetWithQuery(ctx, q, q_args...)
+		
+		if err != nil {
+			return nil, fmt.Errorf("Failed to facet columns, %w", err)
+		}
+		
+		fc := &spelunker.Faceting{
 			Facet:   f,
 			Results: counts,
-		},
+		}
+
+		results[idx] = fc
 	}
 
 	// END OF do this in go routines
-
+	
 	return results, nil
 }
 
@@ -250,6 +223,9 @@ func (s *SQLSpelunker) descendantsQueryWhere(ctx context.Context, id int64, filt
 			args = append(args, f.Value())
 		case spelunker.PLACETYPE_FILTER_SCHEME:
 			where = append(where, fmt.Sprintf("%s.placetype = ?", tables.SPR_TABLE_NAME))
+			args = append(args, f.Value())
+		case spelunker.IS_CURRENT_FILTER_SCHEME:
+			where = append(where, fmt.Sprintf("%s.is_current = ?", tables.SPR_TABLE_NAME))
 			args = append(args, f.Value())
 		default:
 			return nil, nil, fmt.Errorf("Invalid or unsupported filter scheme, %s", f.Scheme())
@@ -308,11 +284,20 @@ func (s *SQLSpelunker) descendantsQueryCountStatement(ctx context.Context, where
 
 func (s *SQLSpelunker) descendantsQueryFacetStatement(ctx context.Context, facet *spelunker.Facet, where []string) string {
 
-	cols := []string{
-		fmt.Sprintf("%s.%s AS %s", tables.SPR_TABLE_NAME, facet, facet),
-		fmt.Sprintf("COUNT(%s.id) AS id", tables.SPR_TABLE_NAME),
+	var facet_label string
+
+	switch facet.Property {
+	case "iscurrent":
+		facet_label = "is_current"
+	default:
+		facet_label = facet.Property
 	}
 
-	return s.descendantsQueryStatement(ctx, cols, where)
+	cols := []string{
+		fmt.Sprintf("%s.%s AS %s", tables.SPR_TABLE_NAME, facet_label, facet),
+		fmt.Sprintf("COUNT(%s.id) AS count", tables.SPR_TABLE_NAME),
+	}
 
+	q := s.descendantsQueryStatement(ctx, cols, where)
+	return fmt.Sprintf("%s GROUP BY %s.%s ORDER BY count DESC", q, tables.SPR_TABLE_NAME, facet_label)
 }
