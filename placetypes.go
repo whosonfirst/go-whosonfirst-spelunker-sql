@@ -79,6 +79,9 @@ func (s *SQLSpelunker) HasPlacetype(ctx context.Context, pg_opts pagination.Opti
 		case spelunker.PLACETYPE_FILTER_SCHEME:
 			where = append(where, "placetype = ?")
 			args = append(args, f.Value())
+		case spelunker.IS_CURRENT_FILTER_SCHEME:
+			where = append(where, "is_current = ?")
+			args = append(args, f.Value())
 		default:
 			return nil, nil, fmt.Errorf("Invalid or unsupported filter scheme, %s", f.Scheme())
 		}

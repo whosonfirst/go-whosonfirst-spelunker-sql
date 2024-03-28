@@ -160,19 +160,19 @@ func (s *SQLSpelunker) GetDescendantsFaceted(ctx context.Context, id int64, filt
 	results := make([]*spelunker.Faceting, len(facets))
 
 	// START OF do this in go routines
-	
+
 	for idx, f := range facets {
 
 		q := s.descendantsQueryFacetStatement(ctx, f, q_where)
-		
+
 		// slog.Info("FACET", "q", q, "args", q_args)
-		
+
 		counts, err := s.facetWithQuery(ctx, q, q_args...)
-		
+
 		if err != nil {
 			return nil, fmt.Errorf("Failed to facet columns, %w", err)
 		}
-		
+
 		fc := &spelunker.Faceting{
 			Facet:   f,
 			Results: counts,
@@ -182,7 +182,7 @@ func (s *SQLSpelunker) GetDescendantsFaceted(ctx context.Context, id int64, filt
 	}
 
 	// END OF do this in go routines
-	
+
 	return results, nil
 }
 
