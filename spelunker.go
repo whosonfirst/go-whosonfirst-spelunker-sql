@@ -38,15 +38,13 @@ func NewSQLSpelunker(ctx context.Context, uri string) (spelunker.Spelunker, erro
 		return nil, fmt.Errorf("Missing ?dsn= parameter")
 	}
 
-	// slog.Info("DSN", "dsn", dsn)
-
 	db, err := db_sql.Open(engine, dsn)
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open database connection, %w", err)
 	}
 
-	db.SetMaxOpenConns(1)
+	// db.SetMaxOpenConns(1)
 
 	s := &SQLSpelunker{
 		engine: engine,

@@ -10,8 +10,6 @@ Documentation is incompete at this time. For starters consult the (also incomple
 
 This is work in progress and you should expect things to change, break or simply not work yet.
 
-_This package is currently "out of sync" with the `whosonfirst/go-whosonfirst-spelunker.Spelunker` interface which means that all the methods are present but not all have been implemented or still have bugs._
-
 ## Indexing
 
 For example:

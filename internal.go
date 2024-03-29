@@ -192,11 +192,38 @@ func (s *SQLSpelunker) querySPR(ctx context.Context, pg_opts pagination.Options,
 
 func (s *SQLSpelunker) querySearch(ctx context.Context, pg_opts pagination.Options, where string, args ...interface{}) (wof_spr.StandardPlacesResults, pagination.Results, error) {
 
+	q := fmt.Sprintf("SELECT id FROM %s WHERE %s", tables.SEARCH_TABLE_NAME, where)
+
+	return s.querySearchDo(ctx, pg_opts, q, args...)
+}
+
+func (s *SQLSpelunker) querySearchWithFilters(ctx context.Context, pg_opts pagination.Options, where string, args ...interface{}) (wof_spr.StandardPlacesResults, pagination.Results, error) {
+
+	// Note the SQLite specific-iness of this.
+	// TO DO: Add code to "do the right thing" depending on a.engine (MySQL, etc...)
+	// SELECT search.id AS id FROM search JOIN spr ON (search.id = CAST(spr.id AS INTEGER) AND search.names_all MATCH 'montreal') LIMIT 10 OFFSET 0;
+
+	q := fmt.Sprintf("SELECT %s.id AS id FROM %s JOIN %s ON %s.id = CAST(%s.id AS INTEGER) WHERE %s",
+		tables.SEARCH_TABLE_NAME,
+		tables.SEARCH_TABLE_NAME,
+		tables.SPR_TABLE_NAME,
+		tables.SEARCH_TABLE_NAME,
+		tables.SPR_TABLE_NAME,
+		where,
+	)
+
+	return s.querySearchDo(ctx, pg_opts, q, args...)
+}
+
+func (s *SQLSpelunker) querySearchDo(ctx context.Context, pg_opts pagination.Options, q string, args ...interface{}) (wof_spr.StandardPlacesResults, pagination.Results, error) {
+
+	slog.Info("SEARCH", "q", q)
+
 	// https://www.sqlite.org/fts5.html
 
 	if pg_opts != nil {
 		limit, offset := s.deriveLimitOffset(pg_opts)
-		where = fmt.Sprintf("%s LIMIT %d OFFSET %d", where, limit, offset)
+		q = fmt.Sprintf("%s LIMIT %d OFFSET %d", q, limit, offset)
 	}
 
 	pg_ch := make(chan pagination.Results)
@@ -214,15 +241,14 @@ func (s *SQLSpelunker) querySearch(ctx context.Context, pg_opts pagination.Optio
 			done_ch <- true
 		}()
 
-		count_q := fmt.Sprintf("SELECT id FROM %s WHERE %s", tables.SEARCH_TABLE_NAME, where)
-		count, err := s.queryCount(ctx, "id", count_q, args...)
+		count, err := s.queryCount(ctx, fmt.Sprintf("%s.id", tables.SEARCH_TABLE_NAME), q, args...)
 
 		if err != nil {
 			err_ch <- fmt.Errorf("Failed to derive query count, %w", err)
 			return
 		}
 
-		slog.Debug("SEARCH", "query", count_q, "count", count)
+		slog.Info("SEARCH", "query", q, "count", count)
 
 		pg_results, err := countable.NewResultsFromCountWithOptions(pg_opts, count)
 
@@ -240,11 +266,12 @@ func (s *SQLSpelunker) querySearch(ctx context.Context, pg_opts pagination.Optio
 			done_ch <- true
 		}()
 
-		results_q := fmt.Sprintf("SELECT id FROM %s WHERE %s", tables.SEARCH_TABLE_NAME, where)
-		rows, err := s.db.QueryContext(ctx, results_q, args...)
+		slog.Info("SEARCH", "do", q, "args", args)
+
+		rows, err := s.db.QueryContext(ctx, q, args...)
 
 		if err != nil {
-			err_ch <- fmt.Errorf("Failed to query where '%s', %w", results_q, err)
+			err_ch <- fmt.Errorf("Failed to query where '%s', %w", q, err)
 			return
 		}
 
@@ -257,18 +284,15 @@ func (s *SQLSpelunker) querySearch(ctx context.Context, pg_opts pagination.Optio
 				// pass
 			}
 
-			for rows.Next() {
+			var id int64
+			err := rows.Scan(&id)
 
-				var id int64
-				err := rows.Scan(&id)
-
-				if err != nil {
-					err_ch <- fmt.Errorf("Failed to scan ID, %w", err)
-					return
-				}
-
-				id_ch <- id
+			if err != nil {
+				err_ch <- fmt.Errorf("Failed to scan ID, %w", err)
+				return
 			}
+
+			id_ch <- id
 		}
 
 		err = rows.Close()
@@ -299,8 +323,6 @@ func (s *SQLSpelunker) querySearch(ctx context.Context, pg_opts pagination.Optio
 	}
 
 	spr_where := fmt.Sprintf("id IN (%s)", strings.Join(str_ids, ","))
-
-	slog.Debug("SPR", "where", spr_where)
 
 	spr_results, _, err := s.querySPR(ctx, nil, spr_where)
 
