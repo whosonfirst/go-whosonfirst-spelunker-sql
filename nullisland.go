@@ -57,7 +57,6 @@ func (s *SQLSpelunker) VisitingNullIslandFaceted(ctx context.Context, filters []
 	// END OF do this in go routines
 
 	return results, nil
-
 }
 
 func (s *SQLSpelunker) visitingNullIslandQueryWhere(filters []spelunker.Filter) ([]string, []interface{}, error) {
