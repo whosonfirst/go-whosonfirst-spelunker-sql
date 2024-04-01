@@ -73,26 +73,14 @@ func (s *SQLSpelunker) HasConcordance(ctx context.Context, pg_opts pagination.Op
 
 	if len(filters) == 0 {
 
-		switch {
-		case namespace != "" && predicate != "":
-			where = append(where, "other_source = ?")
-			args = append(args, fmt.Sprintf("%s:%s", namespace, predicate))
-		case namespace != "":
-			where = append(where, "other_source LIKE ?")
-			args = append(args, namespace+":%")
-		case predicate != "":
-			where = append(where, "other_source LIKE ?")
-			args = append(args, "%:"+predicate)
-		default:
-			return nil, nil, fmt.Errorf("Missing namespace and predicate")
+		var err error
+
+		where, args, err = s.assignFilters(where, args, filters)
+
+		if err != nil {
+			return nil, nil, err
 		}
 
-		if value != "" {
-			where = append(where, "other_id = ?")
-			args = append(args, value)
-		}
-
-		// slog.Info("WHERE", "where", where, "args", args)
 		str_where := strings.Join(where, " AND ")
 
 		q = fmt.Sprintf("SELECT id FROM %s WHERE %s", tables.CONCORDANCES_TABLE_NAME, str_where)
@@ -118,9 +106,12 @@ func (s *SQLSpelunker) HasConcordance(ctx context.Context, pg_opts pagination.Op
 			args = append(args, value)
 		}
 
-		for _, f := range filters {
-			where = append(where, fmt.Sprintf("%s.%s = ?", tables.SPR_TABLE_NAME, f.Scheme()))
-			args = append(args, f.Value())
+		var err error
+
+		where, args, err = s.assignFilters(where, args, filters)
+
+		if err != nil {
+			return nil, nil, err
 		}
 
 		// slog.Info("WHERE", "where", where, "args", args)

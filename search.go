@@ -99,24 +99,7 @@ func (s *SQLSpelunker) searchQueryWhere(search_opts *spelunker.SearchOptions, fi
 			search_opts.Query,
 		}
 
-		for _, f := range filters {
-
-			switch f.Scheme() {
-			case spelunker.COUNTRY_FILTER_SCHEME:
-				where = append(where, "country = ?")
-				args = append(args, f.Value())
-			case spelunker.PLACETYPE_FILTER_SCHEME:
-				where = append(where, "placetype = ?")
-				args = append(args, f.Value())
-			case spelunker.IS_CURRENT_FILTER_SCHEME:
-				where = append(where, "is_current = ?")
-				args = append(args, f.Value())
-			default:
-				return nil, nil, fmt.Errorf("Invalid or unsupported filter scheme, %s", f.Scheme())
-			}
-		}
-
-		return where, args, nil
+		return s.assignFilters(where, args, filters)
 	}
 
 	// join search on spr table
@@ -129,22 +112,5 @@ func (s *SQLSpelunker) searchQueryWhere(search_opts *spelunker.SearchOptions, fi
 		search_opts.Query,
 	}
 
-	for _, f := range filters {
-
-		switch f.Scheme() {
-		case spelunker.COUNTRY_FILTER_SCHEME:
-			where = append(where, fmt.Sprintf("%s.country = ?", tables.SPR_TABLE_NAME))
-			args = append(args, f.Value())
-		case spelunker.PLACETYPE_FILTER_SCHEME:
-			where = append(where, fmt.Sprintf("%s.placetype = ?", tables.SPR_TABLE_NAME))
-			args = append(args, f.Value())
-		case spelunker.IS_CURRENT_FILTER_SCHEME:
-			where = append(where, fmt.Sprintf("%s.is_current = ?", tables.SPR_TABLE_NAME))
-			args = append(args, f.Value())
-		default:
-			return nil, nil, fmt.Errorf("Invalid or unsupported filter scheme, %s", f.Scheme())
-		}
-	}
-
-	return where, args, nil
+	return s.assignFilters(where, args, filters)
 }

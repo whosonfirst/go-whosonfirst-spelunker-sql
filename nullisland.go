@@ -71,21 +71,10 @@ func (s *SQLSpelunker) visitingNullIslandQueryWhere(filters []spelunker.Filter) 
 		0.0,
 	}
 
-	for _, f := range filters {
+	where, args, err := s.assignFilters(where, args, filters)
 
-		switch f.Scheme() {
-		case spelunker.COUNTRY_FILTER_SCHEME:
-			where = append(where, "country = ?")
-			args = append(args, f.Value())
-		case spelunker.PLACETYPE_FILTER_SCHEME:
-			where = append(where, "placetype = ?")
-			args = append(args, f.Value())
-		case spelunker.IS_CURRENT_FILTER_SCHEME:
-			where = append(where, "is_current = ?")
-			args = append(args, f.Value())
-		default:
-			return nil, nil, fmt.Errorf("Invalid or unsupported filter scheme, %s", f.Scheme())
-		}
+	if err != nil {
+		return nil, nil, err
 	}
 
 	return where, args, nil

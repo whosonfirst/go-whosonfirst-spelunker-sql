@@ -10,6 +10,7 @@ import (
 
 	"github.com/aaronland/go-pagination"
 	"github.com/aaronland/go-pagination/countable"
+	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	wof_spr "github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"github.com/whosonfirst/go-whosonfirst-sql/tables"
 	"github.com/whosonfirst/go-whosonfirst-sqlite-spr"
@@ -331,4 +332,33 @@ func (s *SQLSpelunker) querySearchDo(ctx context.Context, pg_opts pagination.Opt
 	}
 
 	return spr_results, pg_results, nil
+}
+
+func (s *SQLSpelunker) assignFilters(where []string, args []interface{}, filters []spelunker.Filter) ([]string, []interface{}, error) {
+
+	for _, f := range filters {
+
+		switch f.Scheme() {
+		case spelunker.COUNTRY_FILTER_SCHEME:
+			where = append(where, "country = ?")
+			args = append(args, f.Value())
+		case spelunker.PLACETYPE_FILTER_SCHEME:
+			where = append(where, "placetype = ?")
+			args = append(args, f.Value())
+		case spelunker.IS_CURRENT_FILTER_SCHEME:
+			where = append(where, "is_current = ?")
+			args = append(args, f.Value())
+		case spelunker.IS_DEPRECATED_FILTER_SCHEME:
+			switch f.Value().(int) {
+			case 0:
+				where = append(where, "is_deprecated != 1")
+			default:
+				where = append(where, "is_deprecated = 1")
+			}
+		default:
+			return nil, nil, fmt.Errorf("Invalid or unsupported filter scheme, %s", f.Scheme())
+		}
+	}
+
+	return where, args, nil
 }

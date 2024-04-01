@@ -73,28 +73,10 @@ func (s *SQLSpelunker) getRecentQueryWhere(d time.Duration, filters []spelunker.
 		then,
 	}
 
-	for _, f := range filters {
+	where, args, err := s.assignFilters(where, args, filters)
 
-		switch f.Scheme() {
-		case spelunker.COUNTRY_FILTER_SCHEME:
-			where = append(where, "country = ?")
-			args = append(args, f.Value())
-		case spelunker.PLACETYPE_FILTER_SCHEME:
-			where = append(where, "placetype = ?")
-			args = append(args, f.Value())
-		case spelunker.IS_CURRENT_FILTER_SCHEME:
-			where = append(where, "is_current = ?")
-			args = append(args, f.Value())
-		case spelunker.IS_DEPRECATED_FILTER_SCHEME:
-			switch f.Value().(int) {
-			case 0:
-				where = append(where, "is_deprecated != 1")
-			default:
-				where = append(where, "is_deprecated = 1")				
-			}
-		default:
-			return nil, nil, fmt.Errorf("Invalid or unsupported filter scheme, %s", f.Scheme())
-		}
+	if err != nil {
+		return nil, nil, err
 	}
 
 	return where, args, nil
@@ -108,7 +90,7 @@ func (s *SQLSpelunker) getRecentQueryFacetStatement(ctx context.Context, facet *
 	case "iscurrent":
 		facet_label = "is_current"
 	case "isdeprecated":
-		facet_label = "is_deprecated"		
+		facet_label = "is_deprecated"
 	default:
 		facet_label = facet.Property
 	}
