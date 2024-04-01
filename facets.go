@@ -8,6 +8,22 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 )
 
+func (s *SQLSpelunker) facetLabel(f *spelunker.Facet) string {
+
+	var facet_label string
+
+	switch f.Property {
+	case "iscurrent":
+		facet_label = "is_current"
+	case "isdeprecated":
+		facet_label = "is_deprecated"
+	default:
+		facet_label = f.Property
+	}
+
+	return facet_label
+}
+
 func (s *SQLSpelunker) facetWithQuery(ctx context.Context, q string, args ...interface{}) ([]*spelunker.FacetCount, error) {
 
 	rows, err := s.db.QueryContext(ctx, q, args...)

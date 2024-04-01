@@ -84,16 +84,7 @@ func (s *SQLSpelunker) getRecentQueryWhere(d time.Duration, filters []spelunker.
 
 func (s *SQLSpelunker) getRecentQueryFacetStatement(ctx context.Context, facet *spelunker.Facet, where []string) string {
 
-	var facet_label string
-
-	switch facet.Property {
-	case "iscurrent":
-		facet_label = "is_current"
-	case "isdeprecated":
-		facet_label = "is_deprecated"
-	default:
-		facet_label = facet.Property
-	}
+	facet_label := s.facetLabel(facet)
 
 	cols := []string{
 		fmt.Sprintf("%s.%s AS %s", tables.SPR_TABLE_NAME, facet_label, facet),

@@ -45,14 +45,7 @@ func (s *SQLSpelunker) SearchFaceted(ctx context.Context, search_opts *spelunker
 
 	for idx, f := range facets {
 
-		var facet_label string
-
-		switch f.Property {
-		case "iscurrent":
-			facet_label = "is_current"
-		default:
-			facet_label = f.Property
-		}
+		facet_label := s.facetLabel(f)
 
 		q := fmt.Sprintf("SELECT %s.%s AS %s, COUNT(%s.id) AS count FROM %s JOIN %s ON %s.id = CAST(%s.id AS INTEGER) WHERE %s GROUP BY %s.%s ORDER BY count DESC",
 			tables.SPR_TABLE_NAME,

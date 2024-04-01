@@ -129,14 +129,7 @@ func (s *SQLSpelunker) hasPlacetypeQueryWhere(pt *placetypes.WOFPlacetype, filte
 
 func (s *SQLSpelunker) hasPlacetypeQueryFacetStatement(ctx context.Context, facet *spelunker.Facet, where []string) string {
 
-	var facet_label string
-
-	switch facet.Property {
-	case "iscurrent":
-		facet_label = "is_current"
-	default:
-		facet_label = facet.Property
-	}
+	facet_label := s.facetLabel(facet)
 
 	cols := []string{
 		fmt.Sprintf("%s.%s AS %s", tables.SPR_TABLE_NAME, facet_label, facet),
