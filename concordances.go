@@ -207,9 +207,10 @@ func (s *SQLSpelunker) HasConcordanceFaceted(ctx context.Context, namespace stri
 		args = append(args, value)
 	}
 
-	for _, f := range filters {
-		where = append(where, fmt.Sprintf("%s.%s = ?", tables.SPR_TABLE_NAME, f.Scheme()))
-		args = append(args, f.Value())
+	where, args, err := s.assignFilters(where, args, filters)
+
+	if err != nil {
+		return nil, err
 	}
 
 	// slog.Info("WHERE", "where", where, "args", args)
