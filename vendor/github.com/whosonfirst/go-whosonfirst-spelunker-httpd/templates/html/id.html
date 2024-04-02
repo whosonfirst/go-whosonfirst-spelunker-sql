@@ -33,26 +33,30 @@
 	</div>
     </div>
     <div id="whosonfirst-record-other">
-	<h3>Hierarchy</h3>
-	{{ range $i, $hier := .Hierarchies -}}	
-	<ul>
-	    {{ range $j, $a := $hier -}}  
-	    <li>the <span class="hey-look">{{ $a.Placetype }}</span> of <a href="{{ URIForId $.URIs.Id $a.Id }}" class="wof-namify" data-wof-id="{{ $a.Id }}">{{ $a.Id }}</a></li>
+	<details open>
+	    <summary>Hierarchy</summary>
+	    {{ range $i, $hier := .Hierarchies -}}	
+	    <ul>
+		{{ range $j, $a := $hier -}}  
+		<li>the <span class="hey-look">{{ $a.Placetype }}</span> of <a href="{{ URIForId $.URIs.Id $a.Id }}" class="wof-namify" data-wof-id="{{ $a.Id }}">{{ $a.Id }}</a></li>
+		{{ end -}}
+	    </ul>
 	    {{ end -}}
-	</ul>
-	{{ end -}}
-	
-	<h3>Other</h3>
-	<ul>
-	    {{ if eq .CountDescendants 0 -}}
-	    <li>This record has no descendants</li>
-	    {{ else -}}
-            <li><a href="{{ URIForId .URIs.Descendants .Id }}">See all the descendants of {{ GjsonGet .Properties "wof:name" }}</a></li>
-	    {{ end -}}
-	    <li><a href="{{ URIForId .URIs.GeoJSON .Id }}">Raw data (GeoJSON)</a></li>
-	    <li><a href="{{ .GitHubURL }}" target="github">View on GitHub</a></li>
-	    <li id="writefield-link"><a href="https://writefield.nextzen.org/place/edit?url={{ .WriteFieldURL }}" target="writefield">Edit in Write Field</a></li>
-	</ul>
+	</details>
+
+	<details open>
+	    <summary>Other</summary>
+	    <ul>
+		{{ if eq .CountDescendants 0 -}}
+		<li>This record has no descendants</li>
+		{{ else -}}
+		<li><a href="{{ URIForId .URIs.Descendants .Id }}">See all the descendants of {{ GjsonGet .Properties "wof:name" }}</a></li>
+		{{ end -}}
+		<li><a href="{{ URIForId .URIs.GeoJSON .Id }}">Raw data (GeoJSON)</a></li>
+		<li><a href="{{ .GitHubURL }}" target="github">View on GitHub</a></li>
+		<li id="writefield-link"><a href="https://writefield.nextzen.org/place/edit?url={{ .WriteFieldURL }}" target="writefield">Edit in Write Field</a></li>
+	    </ul>
+	</details>
     </div>
 </div>
 

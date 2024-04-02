@@ -36,10 +36,7 @@ func DescendantsFacetedHandler(opts *DescendantsFacetedHandlerOptions) (http.Han
 
 		logger = logger.With("wofid", uri.Id)
 
-		filter_params := []string{
-			"placetype",
-			"country",
-		}
+		filter_params := httpd.DefaultFilterParams()
 
 		filters, err := httpd.FiltersFromRequest(ctx, req, filter_params)
 

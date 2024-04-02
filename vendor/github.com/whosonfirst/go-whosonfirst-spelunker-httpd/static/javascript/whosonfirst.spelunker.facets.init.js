@@ -11,6 +11,8 @@ window.addEventListener("load", function load(event){
     var current_url = facets_wrapper.getAttribute("data-current-url");
     var facets_url = facets_wrapper.getAttribute("data-facets-url");    
 
+    console.log("FACETS", facets_url);
+    
     if ((! current_url) || (! facets_url)){
 	return;
     }
@@ -29,8 +31,40 @@ window.addEventListener("load", function load(event){
 
 	var f_label = f;
 
-	if (f == "iscurrent") {
-	    f_label = "is current";
+	switch (f) {
+	    case "iscurrent":
+		f_label = "is current";
+		break;
+	    case "isdeprecated":
+		f_label = "is deprecated";
+
+		var results = rsp.results;
+		var count = results.length;
+
+		deprecated = 0;
+		not_deprecated = 0;
+		
+		for (var i=0; i < count; i++){
+
+		    switch (parseInt(results[i].key)){
+			case 1:
+			    deprecated = results[i].count;
+			    break;
+			default:
+			    not_deprecated += results[i].count;	
+			    break;
+		    }
+		}
+
+		rsp.results = [
+		    { key: "0", count: not_deprecated },
+		    { key: "1", count: deprecated },		    
+		];
+
+		break;
+		
+	    default:
+		break;
 	}
 	
 	var label = document.createElement("h3");
@@ -63,20 +97,37 @@ window.addEventListener("load", function load(event){
 
 		var k_label = k;
 
-		if (f == "iscurrent"){
-
-		    switch (parseInt(k)){
-			case 0:
-			    k_label = "not current";
-			    break;
-			case -1:
-			    k_label = "unknown";
-			    break;
-			default:
-			    k_label = "current";
-			    break;
-		    }
-			    
+		switch(f){
+		    case "iscurrent":
+			
+			switch (parseInt(k)){
+			    case 0:
+				k_label = "not current";
+				break;
+			    case -1:
+				k_label = "unknown";
+				break;
+			    default:
+				k_label = "current";
+				break;
+			}
+			
+			break;
+			
+		    case "isdeprecated":
+			
+			switch (parseInt(k)){
+			    case 0:
+				k_label = "valid";
+				break;
+			    default:
+				k_label = "deprecated";
+				break;
+			}
+			
+			break;
+		default:
+			//
 		}
 		
 		// Something something something is location.href really safe?
@@ -89,6 +140,11 @@ window.addEventListener("load", function load(event){
 		
 		a.setAttribute("href", u.toString());
 		a.setAttribute("class", "hey-look");
+
+		if (k_label == "deprecated"){
+		    a.setAttribute("class", "hey-look deprecated");
+		}
+		
 		a.appendChild(document.createTextNode(k_label));
 		
 		var sm = document.createElement("small");
@@ -102,8 +158,19 @@ window.addEventListener("load", function load(event){
 	    ul.appendChild(item);
 	}
 
-	el.appendChild(label);
-	el.appendChild(ul);
+	var summary = document.createElement("summary");
+	summary.appendChild(document.createTextNode(f_label));
+	
+	var details = document.createElement("details");
+	details.setAttribute("open", "open");
+	
+	details.appendChild(summary);
+	details.appendChild(ul);
+
+	el.appendChild(details);
+	
+	// el.appendChild(label);
+	// el.appendChild(ul);
     };
     
     var fetch_facet = function(f){
@@ -116,7 +183,7 @@ window.addEventListener("load", function load(event){
 	var u = new URL(facets_url, location.href)
 	u.searchParams.set("facet", f);
 	var url = u.toString();
-	
+
 	fetch(url)
 	    .then((rsp) => rsp.json())
 	    .then((data) => {

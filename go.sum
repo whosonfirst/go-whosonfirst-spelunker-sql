@@ -72,8 +72,8 @@ github.com/sfomuseum/go-flags v0.10.0 h1:1OC1ACxpWMsl3XQ9OeNVMQj7Zi2CzufP3Rym3mP
 github.com/sfomuseum/go-flags v0.10.0/go.mod h1:VXOnnX1/yxQpX2yiwHaBV6aCmhtszQOL5bL1/nNo3co=
 github.com/sfomuseum/go-geojsonld v1.0.0 h1:BkHMEsmbTpDTQu1DClTT4VrNMXnLMPsSdBq8tYbMhB4=
 github.com/sfomuseum/go-geojsonld v1.0.0/go.mod h1:hluKfABMpnukBEf8qLwuWdwotdYFelMYKxO1njRmxPU=
-github.com/sfomuseum/go-http-auth v0.9.0 h1:aLkOdbfO5UBNg7HITVMfsizYDB3O3Adxr/Rd7ja17bg=
-github.com/sfomuseum/go-http-auth v0.9.0/go.mod h1:m0I60r/aVlWXia43eoZOp/d0u7M7pURgJEYElvVVe98=
+github.com/sfomuseum/go-http-auth v0.11.0 h1:4p4SynsSVR+s5tc4L3SAQ5nCaf5VD/331sxR9EFmgyE=
+github.com/sfomuseum/go-http-auth v0.11.0/go.mod h1:m0I60r/aVlWXia43eoZOp/d0u7M7pURgJEYElvVVe98=
 github.com/sfomuseum/go-template v1.9.0 h1:0RDnOK0n9/JS/zc7claaBsIB7FBo/iGqe0RBrg5H2Yw=
 github.com/sfomuseum/go-template v1.9.0/go.mod h1:8inbmZmMYiBiZPJK/h0Fbkn7p54MrGstlaiVS9IIWvM=
 github.com/sfomuseum/iso8601duration v1.1.0 h1:kMYzbamrZp9dRxi5iFuhjl5CzHXK6s6Bzz/c75wsq8Q=
@@ -122,10 +122,10 @@ github.com/whosonfirst/go-whosonfirst-placetypes v0.7.2/go.mod h1:Z9Rz7A2aTccdld
 github.com/whosonfirst/go-whosonfirst-sources v0.1.0/go.mod h1:EUMHyGzUmqPPxlMmOp+28BFeoBdxxE0HCKRd67lkqGM=
 github.com/whosonfirst/go-whosonfirst-sources v0.2.0 h1:G5U5lgtNUYHdJloEsI+uqQx5s+Q+zaQpq17nDMx2r2o=
 github.com/whosonfirst/go-whosonfirst-sources v0.2.0/go.mod h1:oAYirIVWxBmpE4/J0p7kpYqmgtQVDCyff2qJ8JzhdHc=
-github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240325054122-58598182a6f0 h1:+xC14zaaqoBfJQE/cp5kD5tfIBtFL/cdytkBNYTiXJ0=
-github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240325054122-58598182a6f0/go.mod h1:/piw3kZ2BSx320SShlHTPHQkHPJJUUizBBzKmOPaiog=
-github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240326064944-cbd3f4c59efa h1:6kG/z/2r1l8Bu+Y2UgjjG+5McxIyeqt7ulB9z8JEskk=
-github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240326064944-cbd3f4c59efa/go.mod h1:9mfUh6lSyMeknrLvXuZG8AIKiUyPMtXHDVvHa0Ff1EY=
+github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240402155952-8bcf14040388 h1:x1JeRKzTItj9zCEfBjabdxfV5AjlnlyG2FVPgFLAHG0=
+github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240402155952-8bcf14040388/go.mod h1:/piw3kZ2BSx320SShlHTPHQkHPJJUUizBBzKmOPaiog=
+github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240402160204-8464ca1ad2a7 h1:XyT68OHliF6Gjr3XJUMrtydUXiAD1jTD15L+wDJFHmE=
+github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240402160204-8464ca1ad2a7/go.mod h1:zuw9zfuxk1+ZbEw4X4VOPfvrvD/S2jdl8vG92Pck4mQ=
 github.com/whosonfirst/go-whosonfirst-spr/v2 v2.2.1/go.mod h1:3P6fiSVGtIbM3UcyaVMs4i1N6Hi88GmTsdouuXzlr78=
 github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7 h1:1j4IMuVua4/NhqKm2ke16h2V5Z2XiLoOdXbjDrfZb0E=
 github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7/go.mod h1:I2IqsIutlDrvYp37Xzwk4WGq+m/gLh+gEifiLmH0bac=

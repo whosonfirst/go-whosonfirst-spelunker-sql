@@ -28,12 +28,7 @@ type Spelunker interface {
 	GetRecordForId(context.Context, int64) ([]byte, error)
 	// Retrive GeoJSON Feature for...
 	GetFeatureForId(context.Context, int64, *uri.URIArgs) ([]byte, error)
-	
-	// Retrieve an individual Who's On First record by its unique ID (DEPRECATED)
-	// GetById(context.Context, int64) ([]byte, error)
-	// Retrieve an alternate geometry record for a Who's On First record by its unique ID. (DEPRECATED)
-	// GetAlternateGeometryById(context.Context, int64, *uri.AltGeom) ([]byte, error)
-	
+
 	// Retrieve all the Who's On First record that are a descendant of a specific Who's On First ID.
 	GetDescendants(context.Context, pagination.Options, int64, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
 	GetDescendantsFaceted(context.Context, int64, []Filter, []*Facet) ([]*Faceting, error)

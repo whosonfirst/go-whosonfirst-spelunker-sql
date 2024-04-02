@@ -78,7 +78,7 @@ whosonfirst.spelunker.geojson = (function(){
 			return [ coords[0], coords[1], coords[0], coords[1] ];
 
 		    } else if (geom.type == 'MultiPoint' || geom.type == 'LineString') {
-
+			
 			for (var i = 0; i < coords.length; i++) {
 			    lats.push(coords[i][1]);
 			    lngs.push(coords[i][0]);

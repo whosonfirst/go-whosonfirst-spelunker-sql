@@ -15,6 +15,7 @@ func DefaultFilterParams() []string {
 		"placetype",
 		"country",
 		"iscurrent",
+		"isdeprecated",		
 	}
 }
 
@@ -51,6 +52,32 @@ func FiltersFromRequest(ctx context.Context, req *http.Request, params []string)
 				filters = append(filters, is_current_f)
 			}
 
+		case "isdeprecated":
+
+			str_fl, err := sanitize.GetString(req, "isdeprecated")
+
+			if err != nil {
+				return nil, fmt.Errorf("Failed to derive ?isdeprecated= query parameter, %w", err)
+			}
+
+			if str_fl != "" {
+
+				switch str_fl {
+				case "-1", "0", "1":
+					// ok
+				default:
+					return nil, fmt.Errorf("Invalid ?isdeprecated query parameter")
+				}
+
+				is_deprecated_f, err := spelunker.NewIsDeprecatedFilterFromString(ctx, str_fl)
+
+				if err != nil {
+					return nil, fmt.Errorf("Failed to create new is deprecated filter, %w", err)
+				}
+
+				filters = append(filters, is_deprecated_f)
+			}
+			
 		case "country":
 
 			country, err := sanitize.GetString(req, "country")

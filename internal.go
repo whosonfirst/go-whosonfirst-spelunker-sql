@@ -340,20 +340,20 @@ func (s *SQLSpelunker) assignFilters(where []string, args []interface{}, filters
 
 		switch f.Scheme() {
 		case spelunker.COUNTRY_FILTER_SCHEME:
-			where = append(where, "country = ?")
+			where = append(where, fmt.Sprintf("%s.country = ?", tables.SPR_TABLE_NAME))
 			args = append(args, f.Value())
 		case spelunker.PLACETYPE_FILTER_SCHEME:
-			where = append(where, "placetype = ?")
+			where = append(where, fmt.Sprintf("%s.placetype = ?", tables.SPR_TABLE_NAME))
 			args = append(args, f.Value())
 		case spelunker.IS_CURRENT_FILTER_SCHEME:
-			where = append(where, "is_current = ?")
+			where = append(where, fmt.Sprintf("%s.is_current = ?", tables.SPR_TABLE_NAME))
 			args = append(args, f.Value())
 		case spelunker.IS_DEPRECATED_FILTER_SCHEME:
 			switch f.Value().(int) {
 			case 0:
-				where = append(where, "is_deprecated != 1")
+				where = append(where, fmt.Sprintf("%s.is_deprecated != 1", tables.SPR_TABLE_NAME))
 			default:
-				where = append(where, "is_deprecated = 1")
+				where = append(where, fmt.Sprintf("%s.is_deprecated = 1", tables.SPR_TABLE_NAME))
 			}
 		default:
 			return nil, nil, fmt.Errorf("Invalid or unsupported filter scheme, %s", f.Scheme())

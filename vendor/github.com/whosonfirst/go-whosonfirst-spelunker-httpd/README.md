@@ -13,4 +13,5 @@ This is work in progress and you should expect things to change, break or simply
 ## See also
 
 * https://github.com/whosonfirst/go-whosonfirst-spelunker
+* https://github.com/whosonfirst/go-whosonfirst-spelunker-opensearch
 * https://github.com/whosonfirst/go-whosonfirst-spelunker-sql

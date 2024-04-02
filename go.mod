@@ -6,8 +6,8 @@ require (
 	github.com/aaronland/go-pagination v0.3.0
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/whosonfirst/go-whosonfirst-placetypes v0.7.2
-	github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240325054122-58598182a6f0
-	github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240326064944-cbd3f4c59efa
+	github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240402155952-8bcf14040388
+	github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240402160204-8464ca1ad2a7
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7
 	github.com/whosonfirst/go-whosonfirst-sql v0.0.4
 	github.com/whosonfirst/go-whosonfirst-sqlite-spr v0.3.3
@@ -34,7 +34,7 @@ require (
 	github.com/sfomuseum/go-edtf v1.1.1 // indirect
 	github.com/sfomuseum/go-flags v0.10.0 // indirect
 	github.com/sfomuseum/go-geojsonld v1.0.0 // indirect
-	github.com/sfomuseum/go-http-auth v0.9.0 // indirect
+	github.com/sfomuseum/go-http-auth v0.11.0 // indirect
 	github.com/sfomuseum/go-template v1.9.0 // indirect
 	github.com/sfomuseum/iso8601duration v1.1.0 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect

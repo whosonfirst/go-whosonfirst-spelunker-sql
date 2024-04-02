@@ -94,7 +94,7 @@ func DescendantsHandler(opts *DescendantsHandlerOptions) (http.Handler, error) {
 
 		// This is not ideal but I am not sure what is better yet...
 		facets_url := httpd.URIForId(opts.URIs.DescendantsFaceted, uri.Id, filters, nil)
-		facets_context_url := req.URL.Path
+		facets_context_url := pagination_url
 
 		vars := DescendantsHandlerVars{
 			Id:               uri.Id,

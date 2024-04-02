@@ -7,6 +7,10 @@ body {
     background-color: #fff !important;
 }
 
+a {
+	color: #fe1e9f !important;;
+}
+	
 p {
     font-family: sans-serif;
     font-size:1.4em;
@@ -16,8 +20,27 @@ p {
     color:#333;
 }
 
+	details {
+		margin-bottom: 1rem;
+	}
+
+	details ul {
+		margin-left: 1rem;
+		margin-top:1rem;
+		margin-bottom:1rem;
+	}
+	
+	summary {
+		font-weight: 600;
+		font-size: 1.2rem;
+	}
+
 .leaflet-control-attribution {
 	display:none;
+}
+
+.deprecated {
+	color: red !important;
 }
 
 #map-wrapper:after {

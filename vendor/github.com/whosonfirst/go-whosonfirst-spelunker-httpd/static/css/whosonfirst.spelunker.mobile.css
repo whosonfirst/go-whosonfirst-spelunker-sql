@@ -1,9 +1,43 @@
-@media (max-width: 400px) {
+@media (max-width: 320px) {
 
+	body {
+		margin: 0px !important;
+	}
+
+	p {
+		font-size: 1.1rem;
+		line-height: 1.4rem;
+	}
+	
     h3 {
 	line-height:1.5em;
     }
 
+	ul li {
+		margin-bottom: .25rem;
+	}
+	
+	#footer {
+		margin-left: 1rem !important;
+	}
+
+	#footer .pull-right {
+		display: block !important;
+	}
+	
+	details ul {
+		font-size: 1.1rem;
+		line-height: 1.6rem;
+	}
+
+	.whosonfirst-facets li {
+		display: block;
+	}
+
+	.whosonfirst-record {
+		grid-template-columns: 1fr;
+	}
+	
     #nav-links {
 	margin-bottom:1em !important;
     }
@@ -39,6 +73,11 @@
 	display: inline !important;
     }
 
+	#whosonfirst-places {
+		grid-template-columns: 1fr;
+	}
+
+	
     .not-a-geocoder {
 	display:none !important;
     }

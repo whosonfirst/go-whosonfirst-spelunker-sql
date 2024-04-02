@@ -16,6 +16,16 @@ This is a refactoring of both the [whosonfirst/whosonfirst-www-spelunker](github
 
 Specifically, the former (`whosonfirst-www-spelunker`) is written in Python and has a sufficiently complex set of requirements that spinning up a new instance is difficult. By rewriting the spelunker tool in Go the hope is to eliminate or at least minimize these external requirements and to make it easier to deploy the spelunker to "serverless" environments like AWS Lambda or Function URLs. The latter (`go-whosonfirst-browser`) has developed a sufficiently large and complex code base that starting from scratch and simply copying, and adapting, existing functionality seemed easier than 
 
+## A note about versioning
+
+Currently this package is unversioned reflecting the fact that it is still in flux. The rate of change is slowing down and will eventually be assigned version numbers less than 1.x for as long as it takes to produce the initial "minimal viable (and working)" Spelunker implementations. These versions (0.x.y) should not be considered to be backwards compatible with each other and are expected to change as the first stable interface is settled, specifically if and whether it will contain spatial functions.
+
+Once a decision has been reached on that matter and everything is proven to work this package (and all the related packages, discussed below) will be bumped up to a "version 2.x" release, skipping version 1.x altogether, reflecting the fact that the original Python version of the Spelunker is "version 1" and that this code base is meaningfully different.
+
+After the "v2" release this package (and related packages) will follow the standard Go convention of incrementing version numbers if and when there are changes to the underlying Spelunker interface.
+
+## Structure
+
 There are three "classes" of `go-whosonfirst-spelunker` packages:
 
 ### go-whosonfirst-spelunker
@@ -147,6 +157,8 @@ func checkVFS(spelunker_uri string) (bool, string, error) {
 	return true, u.String(), nil
 }
 ```
+
+_Note: In practice this (querying a SQLite database over HTTP) doesn't really work in a Spelunker context. Specifically, it works for simple atomic queries but the moment the application starts to do multiple overlapping queries in the same session/context there are database locks and everything times out. Maybe I am doing something wrong? I would love to know what and how to fix it if that's the case since this is a super-compelling deployment strategy. Until then it should probably best be understood as a reference implementation only._
 
 ## See also
 

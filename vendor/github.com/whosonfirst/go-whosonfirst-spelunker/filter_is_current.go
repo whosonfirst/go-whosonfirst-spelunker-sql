@@ -29,10 +29,10 @@ func NewIsCurrentFilter(ctx context.Context, uri string) (Filter, error) {
 
 	q := u.Query()
 
-	if !q.Has("flag"){
+	if !q.Has("flag") {
 		return nil, fmt.Errorf("Missing ?flag= parameter")
 	}
-	
+
 	str_fl := q.Get("flag")
 
 	fl, err := strconv.Atoi(str_fl)

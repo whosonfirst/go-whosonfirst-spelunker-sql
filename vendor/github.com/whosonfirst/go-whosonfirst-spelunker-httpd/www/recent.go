@@ -116,7 +116,7 @@ func RecentHandler(opts *RecentHandlerOptions) (http.Handler, error) {
 
 		// This is not ideal but I am not sure what is better yet...
 		facets_url := httpd.URIForRecent(opts.URIs.RecentFaceted, str_d, filters, nil)
-		facets_context_url := req.URL.Path
+		facets_context_url := pagination_url
 
 		now := time.Now()
 		now_ts := now.Unix()
