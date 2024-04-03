@@ -55,12 +55,13 @@ whosonfirst.spelunker.leaflet.styles = (function(){
 		'search_centroid': function(){
 
 			return {
-				"color": "#000",
-				"weight": 2,
-				"opacity": 1,
-				"radius": 6,
-				"fillColor": "#0BBDFF",
-				"fillOpacity": 1
+			    "color": "#000",
+			    "weight": 2,
+			    "opacity": 1,
+			    "radius": 6,
+			    "fillColor": "#fe1e9f",
+			    // "fillColor": "#0BBDFF",
+			    "fillOpacity": 1
 			};
 		},
 

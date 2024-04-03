@@ -53,19 +53,22 @@ whosonfirst.spelunker.properties = (function(){
 	
 	    var text_renderers = function(d, ctx){
 
-		if ((possible_wof.indexOf(ctx) != -1) && (d > 0)){
+		// To account for things like "wof:supersedes#0"
+		var test_ctx = ctx.split("#")[0];
+		
+		if ((possible_wof.indexOf(test_ctx) != -1) && (d > 0)){
 		    return self.render_wof_id;
 		}
 
-		else if (ctx.match(/^name-/)){
+		else if (test_ctx.match(/^name-/)){
 		    return self.render_wof_name;
 		}
 
-		else if (ctx.match(/^sg-classifiers-/)){
+		else if (test_ctx.match(/^sg-classifiers-/)){
 		    return self.render_simplegeo_classifiers;
 		}
 
-		else if (text_callbacks[ctx]){
+		else if (text_callbacks[test_ctx]){
 		    return text_callbacks[ctx];
 		}
 

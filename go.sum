@@ -124,8 +124,8 @@ github.com/whosonfirst/go-whosonfirst-sources v0.2.0 h1:G5U5lgtNUYHdJloEsI+uqQx5
 github.com/whosonfirst/go-whosonfirst-sources v0.2.0/go.mod h1:oAYirIVWxBmpE4/J0p7kpYqmgtQVDCyff2qJ8JzhdHc=
 github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240402155952-8bcf14040388 h1:x1JeRKzTItj9zCEfBjabdxfV5AjlnlyG2FVPgFLAHG0=
 github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240402155952-8bcf14040388/go.mod h1:/piw3kZ2BSx320SShlHTPHQkHPJJUUizBBzKmOPaiog=
-github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240402160204-8464ca1ad2a7 h1:XyT68OHliF6Gjr3XJUMrtydUXiAD1jTD15L+wDJFHmE=
-github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240402160204-8464ca1ad2a7/go.mod h1:zuw9zfuxk1+ZbEw4X4VOPfvrvD/S2jdl8vG92Pck4mQ=
+github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240403154010-61c207409c22 h1:4WvqjuX6Qg9tbFpNclRmrtKbUAHoY5nvVJRybMnG6Pg=
+github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240403154010-61c207409c22/go.mod h1:zuw9zfuxk1+ZbEw4X4VOPfvrvD/S2jdl8vG92Pck4mQ=
 github.com/whosonfirst/go-whosonfirst-spr/v2 v2.2.1/go.mod h1:3P6fiSVGtIbM3UcyaVMs4i1N6Hi88GmTsdouuXzlr78=
 github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7 h1:1j4IMuVua4/NhqKm2ke16h2V5Z2XiLoOdXbjDrfZb0E=
 github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7/go.mod h1:I2IqsIutlDrvYp37Xzwk4WGq+m/gLh+gEifiLmH0bac=
