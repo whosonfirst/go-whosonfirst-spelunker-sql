@@ -1,11 +1,17 @@
 CWD=$(shell pwd)
 
 GOMOD=$(shell test -f "go.work" && echo "readonly" || echo "vendor")
+LDFLAGS=-s -w
+
+GOTAGS=icu json1 fts5
+
+cli:
+	go build -mod $(GOMOD) -tags="$(GOTAGS)" -ldflags="$(LDFLAGS)" -o bin/httpd cmd/httpd/main.go
 
 SPELUNKER_URI=sql://sqlite3?dsn=file:/usr/local/data/xy.db
 
 server:
-	go run -mod $(GOMOD) -tags "icu json1 fts5" cmd/httpd/main.go \
+	go run -mod $(GOMOD) -tags "$(GOTAGS)" cmd/httpd/main.go \
 		-server-uri http://localhost:8080 \
 		-protomaps-api-key '$(APIKEY)' \
 		-spelunker-uri $(SPELUNKER_URI)
