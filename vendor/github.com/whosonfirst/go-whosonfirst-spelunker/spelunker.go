@@ -25,7 +25,8 @@ type SpelunkerInitializationFunc func(ctx context.Context, uri string) (Spelunke
 type Spelunker interface {
 
 	// Retrieve properties (or more specifically the "document") for...
-	GetRecordForId(context.Context, int64) ([]byte, error)
+	GetRecordForId(context.Context, int64, *uri.URIArgs) ([]byte, error)
+	GetSPRForId(context.Context, int64, *uri.URIArgs) (spr.StandardPlacesResult, error)
 	// Retrive GeoJSON Feature for...
 	GetFeatureForId(context.Context, int64, *uri.URIArgs) ([]byte, error)
 
@@ -50,6 +51,10 @@ type Spelunker interface {
 	GetConcordances(context.Context) (*Faceting, error)
 	HasConcordance(context.Context, pagination.Options, string, string, any, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
 	HasConcordanceFaceted(context.Context, string, string, any, []Filter, []*Facet) ([]*Faceting, error)
+
+	GetTags(context.Context) (*Faceting, error)
+	HasTag(context.Context, pagination.Options, string, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
+	HasTagFaceted(context.Context, string, []Filter, []*Facet) ([]*Faceting, error)
 
 	VisitingNullIsland(context.Context, pagination.Options, []Filter) (spr.StandardPlacesResults, pagination.Results, error)
 	VisitingNullIslandFaceted(context.Context, []Filter, []*Facet) ([]*Faceting, error)

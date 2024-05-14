@@ -27,7 +27,11 @@ func NewNullSpelunker(ctx context.Context, uri string) (Spelunker, error) {
 	return s, nil
 }
 
-func (s *NullSpelunker) GetRecordForId(ctx context.Context, id int64) ([]byte, error) {
+func (s *NullSpelunker) GetRecordForId(ctx context.Context, id int64, uri_args *uri.URIArgs) ([]byte, error) {
+	return nil, ErrNotImplemented
+}
+
+func (s *NullSpelunker) GetSPRForId(ctx context.Context, id int64, uri_args *uri.URIArgs) (spr.StandardPlacesResult, error) {
 	return nil, ErrNotImplemented
 }
 
@@ -84,6 +88,18 @@ func (s *NullSpelunker) HasConcordance(ctx context.Context, pg_opts pagination.O
 }
 
 func (s *NullSpelunker) HasConcordanceFaceted(ctx context.Context, namespace string, predicate string, value any, filters []Filter, facets []*Facet) ([]*Faceting, error) {
+	return nil, ErrNotImplemented
+}
+
+func (s *NullSpelunker) GetTags(ctx context.Context) (*Faceting, error) {
+	return nil, ErrNotImplemented
+}
+
+func (s *NullSpelunker) HasTag(ctx context.Context, pg_opts pagination.Options, tag string, filters []Filter) (spr.StandardPlacesResults, pagination.Results, error) {
+	return nil, nil, ErrNotImplemented
+}
+
+func (s *NullSpelunker) HasTagFaceted(ctx context.Context, tag string, filters []Filter, facets []*Facet) ([]*Faceting, error) {
 	return nil, ErrNotImplemented
 }
 

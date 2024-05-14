@@ -65,8 +65,9 @@ func NewSQLSpelunker(ctx context.Context, uri string) (spelunker.Spelunker, erro
 // CountDescendants(context.Context, int64) (int64, error)
 
 // id.go
-// GetRecordForId(context.Context, int64) ([]byte, error)
+// GetRecordForId(context.Context, int64, *uri.URIArgs) ([]byte, error)
 // GetFeatureForId(context.Context, int64, *uri.URIArgs) ([]byte, error)
+// GetSPRForId(context.Context, int64, *uri.URIArgs) (spr.StandardPlacesResult, error)
 
 // nullisland.go
 // VisitingNullIsland(context.Context, pagination.Options, []Filter) (spr.StandardPlacesResults, pagination.Results, error)

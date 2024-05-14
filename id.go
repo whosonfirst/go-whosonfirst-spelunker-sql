@@ -4,14 +4,17 @@ import (
 	"context"
 	db_sql "database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	"github.com/whosonfirst/go-whosonfirst-spelunker/document"
+	wof_spr "github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"github.com/whosonfirst/go-whosonfirst-sql/tables"
+	"github.com/whosonfirst/go-whosonfirst-sqlite-spr"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 )
 
-func (s *SQLSpelunker) GetRecordForId(ctx context.Context, id int64) ([]byte, error) {
+func (s *SQLSpelunker) GetRecordForId(ctx context.Context, id int64, uri_args *uri.URIArgs) ([]byte, error) {
 
 	// TBD - replace this with a dedicated "spelunker" table
 	// https://github.com/whosonfirst/go-whosonfirst-sql/blob/spelunker/tables/spelunker.sqlite.schema
@@ -24,6 +27,20 @@ func (s *SQLSpelunker) GetRecordForId(ctx context.Context, id int64) ([]byte, er
 	}
 
 	return document.PrepareSpelunkerV2Document(ctx, body)
+}
+
+func (s *SQLSpelunker) GetSPRForId(ctx context.Context, id int64, uri_args *uri.URIArgs) (wof_spr.StandardPlacesResult, error) {
+
+	cols := s.sprQueryColumnsAll(ctx)
+
+	q := fmt.Sprintf("SELECT %s FROM %s WHERE id = ?", tables.SPR_TABLE_NAME, strings.Join(cols, ", "))
+
+	args := []interface{}{
+		id,
+	}
+
+	rsp := s.db.QueryRowContext(ctx, q, args...)
+	return spr.RetrieveSPRWithRow(ctx, rsp)
 }
 
 func (s *SQLSpelunker) GetFeatureForId(ctx context.Context, id int64, uri_args *uri.URIArgs) ([]byte, error) {

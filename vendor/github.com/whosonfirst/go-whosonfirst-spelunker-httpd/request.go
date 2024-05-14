@@ -16,6 +16,7 @@ import (
 	"github.com/whosonfirst/go-reader"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd/webfinger"
+	"github.com/whosonfirst/go-whosonfirst-spr/v2"
 	wof_uri "github.com/whosonfirst/go-whosonfirst-uri"
 )
 
@@ -193,6 +194,32 @@ func FeatureFromRequestURI(ctx context.Context, sp spelunker.Spelunker, req_uri 
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to retrieve feature for %d, %w", err)
+	}
+
+	return f, nil
+}
+
+func RecordFromRequestURI(ctx context.Context, sp spelunker.Spelunker, req_uri *URI) ([]byte, error) {
+
+	wof_id := req_uri.Id
+
+	f, err := sp.GetRecordForId(ctx, wof_id, req_uri.URIArgs)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to retrieve record for %d, %w", err)
+	}
+
+	return f, nil
+}
+
+func SPRFromRequestURI(ctx context.Context, sp spelunker.Spelunker, req_uri *URI) (spr.StandardPlacesResult, error) {
+
+	wof_id := req_uri.Id
+
+	f, err := sp.GetSPRForId(ctx, wof_id, req_uri.URIArgs)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to retrieve record for %d, %w", err)
 	}
 
 	return f, nil

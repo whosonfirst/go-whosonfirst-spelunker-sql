@@ -27,11 +27,11 @@
 
 <p>Nope. The spelunker is a read-only tool, by design. Eventually there will be a web-based tool for editing Who's On First data but this is not that tool.</p>
 
-<h3>Can I run my own copy of the spelunker?</h3>
+<h3>Can I run my own copy of the Spelunker?</h3>
 
-<p>Yes! The spelunker is an open-source tool and you can grab a copy of the source code from <a href="https://github.com/whosonfirst/whosonfirst-www-spelunker" class="hey-look">our GitHub repository</a>. As of this writing the documentation is a little sparse but that will improve over time.</p>
+<p>Yes. Have a look at the <a href="/code">Code</a> and <a href="/howto">How To</a> sections for details.</p>
 
-<h3>Can I get a copy of all the data in the spelunker?</h3>
+<h3>Can I get a copy of all the data in the Spelunker?</h3>
 
 <p>Yes! All of the data is currently available on GitHub:</p>
 
@@ -39,7 +39,7 @@
 
 <h3>Can I put other kinds of data in the spelunker?</h3>
 
-<p>Probably? The spelunker is designed to consume simple <a href="http://www.geojson.org/" class="hey-look">GeoJSON</a> files so there's nothing to prevent you from trying to import data from a different source. That said, the templates and much of the Javascript used to transform data expects specific properties to be present in the data. More specifically, nothing has been taught to behave nicely when that data isn't present. That's something we should do but it just hasn't happened yet. If you're feeling adventurous we'd love to hear what happens when you try to import a different dataset.</p>
+<p>Probably? The Spelunker is designed to consume simple <a href="http://www.geojson.org/" class="hey-look">GeoJSON</a> files so there's nothing to prevent you from trying to import data from a different source. That said, the templates and much of the JavaScript used to transform data expects specific properties to be present in the data. More specifically, nothing has been taught to behave nicely when that data isn't present. That's something we should do but it just hasn't happened yet. If you're feeling adventurous we'd love to hear what happens when you try to import a different dataset.</p>
 
 {{ template "inc_foot" . -}}
 {{ end -}}

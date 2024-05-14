@@ -86,8 +86,10 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		logger = logger.With("request id", req_id)
 		logger = logger.With("wof id", wof_id)
 
-		f, err := opts.Spelunker.GetRecordForId(ctx, wof_id)
-		
+		uri_args := new(uri.URIArgs)
+
+		f, err := opts.Spelunker.GetRecordForId(ctx, wof_id, uri_args)
+
 		if err != nil {
 			slog.Error("Failed to get by ID", "error", err)
 			http.Error(rsp, spelunker.ErrNotFound.Error(), http.StatusNotFound)
@@ -172,7 +174,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		// hierarchies := properties.Hierarchies(f)
 
 		hierarchies := make([]map[string]int64, 0)
-		
+
 		h_rsp := gjson.GetBytes(f, "wof:hierarchy")
 
 		if h_rsp.Exists() {
@@ -180,15 +182,15 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 			for _, h := range h_rsp.Array() {
 
 				dict := make(map[string]int64)
-				
+
 				for k, v := range h.Map() {
 					dict[k] = v.Int()
 				}
-				
+
 				hierarchies = append(hierarchies, dict)
 			}
 		}
-		
+
 		handler_hierarchies := make([][]*IdHandlerAncestor, len(hierarchies))
 
 		for idx, hier := range hierarchies {
@@ -237,4 +239,3 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 	h := http.HandlerFunc(fn)
 	return h, nil
 }
-

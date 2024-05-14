@@ -63,7 +63,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, logger *slog.Logger) 
 		run_options.URIs.Search:            searchHandlerFunc,
 		run_options.URIs.About:             aboutHandlerFunc,
 		run_options.URIs.Code:              codeHandlerFunc,
-		run_options.URIs.HowTo:              howtoHandlerFunc,		
+		run_options.URIs.HowTo:             howtoHandlerFunc,
 		run_options.URIs.Index:             indexHandlerFunc,
 		run_options.URIs.Tiles:             tilesHandlerFunc,
 
@@ -75,6 +75,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, logger *slog.Logger) 
 		run_options.URIs.ConcordanceNSPredFaceted: hasConcordanceFacetedHandlerFunc,
 		run_options.URIs.ConcordanceTripleFaceted: hasConcordanceFacetedHandlerFunc,
 		run_options.URIs.DescendantsFaceted:       descendantsFacetedHandlerFunc,
+		run_options.URIs.FindingAid:               findingAidHandlerFunc,
 		run_options.URIs.GeoJSON:                  geoJSONHandlerFunc,
 		run_options.URIs.GeoJSONLD:                geoJSONLDHandlerFunc,
 		run_options.URIs.NavPlace:                 navPlaceHandlerFunc,

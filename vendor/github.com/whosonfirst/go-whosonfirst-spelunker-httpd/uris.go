@@ -29,7 +29,7 @@ type URIs struct {
 	Search            string   `json:"search"`
 	About             string   `json:"about"`
 	Code              string   `json:"code"`
-	HowTo              string   `json:"how_to"`	
+	HowTo             string   `json:"how_to"`
 	Tiles             string   `json:"tiles"`
 
 	// Static assets
@@ -40,6 +40,7 @@ type URIs struct {
 	ConcordanceNSPredFaceted string   `json:"concordance_ns_pred"`
 	ConcordanceTripleFaceted string   `json:"concordance_triple_faceted"`
 	DescendantsFaceted       string   `json:"descendants_faceted"`
+	FindingAid               string   `json:"finding_aid"`
 	GeoJSON                  string   `json:"geojson"`
 	GeoJSONAlt               []string `json:"geojson_alt"`
 	GeoJSONLD                string   `json:"geojsonld"`
@@ -97,7 +98,7 @@ func DefaultURIs() *URIs {
 		Search:            "/search",
 		About:             "/about",
 		Code:              "/code",
-		HowTo:              "/howto",		
+		HowTo:             "/howto",
 		NullIsland:        "/nullisland",
 		Placetypes:        "/placetypes",
 		Placetype:         "/placetypes/{placetype}",
@@ -121,6 +122,8 @@ func DefaultURIs() *URIs {
 		ConcordanceNSPredFaceted: "/concordances/{namespace}:{predicate}/facets",
 		ConcordanceTripleFaceted: "/concordances/{namespace}:{predicate}={value}/facets",
 		DescendantsFaceted:       "/id/{id}/descendants/facets",
+
+		FindingAid: "/findingaid/",
 
 		GeoJSON: "/geojson/",
 		GeoJSONAlt: []string{

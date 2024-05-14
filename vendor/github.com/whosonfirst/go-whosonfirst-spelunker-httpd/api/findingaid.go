@@ -1,20 +1,18 @@
 package api
 
 import (
-	"encoding/json"
 	"log/slog"
 	"net/http"
 
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd"
-	"github.com/whosonfirst/go-whosonfirst-spr/v2"
 )
 
-type SPRHandlerOptions struct {
+type FindingAidHandlerOptions struct {
 	Spelunker spelunker.Spelunker
 }
 
-func SPRHandler(opts *SPRHandlerOptions) (http.Handler, error) {
+func FindingAidHandler(opts *FindingAidHandlerOptions) (http.Handler, error) {
 
 	logger := slog.Default()
 
@@ -33,17 +31,7 @@ func SPRHandler(opts *SPRHandlerOptions) (http.Handler, error) {
 			return
 		}
 
-		/*
-			spr, err := httpd.SPRFromRequestURI(ctx, opts.Spelunker, req_uri)
-
-			if err != nil {
-				slog.Error("Failed to get by ID", "id", req_uri.Id, "error", err)
-				http.Error(rsp, spelunker.ErrNotFound.Error(), http.StatusNotFound)
-				return
-			}
-		*/
-
-		r, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)
+		spr, err := httpd.SPRFromRequestURI(ctx, opts.Spelunker, req_uri)
 
 		if err != nil {
 			slog.Error("Failed to get by ID", "id", req_uri.Id, "error", err)
@@ -51,23 +39,10 @@ func SPRHandler(opts *SPRHandlerOptions) (http.Handler, error) {
 			return
 		}
 
-		s, err := spr.WhosOnFirstSPR(r)
+		repo := spr.Repo()
 
-		if err != nil {
-			http.Error(rsp, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		rsp.Header().Set("Content-Type", "application/json")
-
-		enc := json.NewEncoder(rsp)
-		err = enc.Encode(s)
-
-		if err != nil {
-			http.Error(rsp, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		rsp.Header().Set("Content-Type", "text/plain")
+		rsp.Write([]byte(repo))
 	}
 
 	h := http.HandlerFunc(fn)

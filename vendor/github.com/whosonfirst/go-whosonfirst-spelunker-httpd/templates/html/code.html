@@ -5,25 +5,71 @@
 
 <p>The code is broken up in to three parts:</p>
 
+<ol>
+    <li><a href="#go-whosonfirst-spelunker">go-whosonfirst-spelunker</a></li>
+    <li><a href="#go-whosonfirst-spelunker-database">go-whosonfirst-spelunker-{DATABASE}</a></li>
+    <li><a href="#go-whosonfirst-spelunker-httpd">go-whosonfirst-spelunker-httpd</a></li>
+</ol>
+	
 <h3>go-whosonfirst-spelunker</h3>
 
 <p>This package defines a common <q>interface</q> (sometimes called a <q>contract</q> in other programming languages for how the Spelunker works. It defines the kinds of questions (methods) you can ask it and what the responses to those questions will look like. It does not actually implement any functionality.</p>
-    
+
+<ul>
+    <li><a href="https://github.com/whosonfirst/go-whosonfirst-spelunker">https://github.com/whosonfirst/go-whosonfirst-spelunker</a></li>
+</ul>
+
+<h4>A note about versioning</h4>
+
+<p>Currently this package is unversioned reflecting the fact that it is still in flux. The rate of change is slowing down and will eventually be assigned version numbers less than 1.x for as long as it takes to produce the initial "minimal viable (and working)" Spelunker implementations. These versions (0.x.y) should not be considered to be backwards compatible with each other and are expected to change as the first stable interface is settled, specifically if and whether it will contain spatial functions.</p>
+
+<p>Once a decision has been reached on that matter and everything is proven to work this package (and all the related packages, discussed below) will be bumped up to a "version 2.x" release, skipping version 1.x altogether, reflecting the fact that the original Python version of the Spelunker is "version 1" and that this code base is meaningfully different.</p>
+
+<p>After the "v2" release this package (and related packages) will follow the standard Go convention of incrementing version numbers if and when there are changes to the underlying Spelunker interface.</p>
+
 <h3>go-whosonfirst-spelunker-{DATABASE}</h3>
 
 <p>These packages are <em>implementations</em> of the <code>go-whosonfirst-spelunker</code> interfaces. As a practical matter this tends to mean that it is the code that manages how the questions and answers defined in the spelunker inteface are stored and retrieved from a particular database engine. For example:</p>
 
 <ul>
-    <li><a href="">go-whosonfirst-spelunker-opensearch</a> ...</li>
-    <li><a href="">go-whosonfirst-spelunker-sql</a> ...</li>
+    <li><a href="https://github.com/whosonfirst/go-whosonfirst-spelunker-opensearch" class="hey-look">go-whosonfirst-spelunker-opensearch</a> which uses an <a href="">OpenSearch</a> database to store and index Who's On First records.</li>
+    <li><a href="https://github.com/whosonfirst/go-whosonfirst-spelunker-sql" class="hey-look">go-whosonfirst-spelunker-sql</a> which uses any SQL-based database that implements the Go-language <a href="https://pkg.go.dev/database/sql">database/sql</a> interfaces to store and index Who's On First records. <span style="font-style:italic;">At the moment this code has only been tested with <a href="https://www.sqlite.org/index.html">SQLite</a> databases produced by the <a href="https://github.com/whosonfirst/go-whosonfirst-sqlite-features-index">whosonfirst/go-whosonfirst-sqlite-features-index</a> package and probably contains some SQLite-specific syntax. These issues should be relatively easy to trap (hide) in the code itself through the use of conditionals but that work has not happened yet.</span></li>
 </ul>
 
-<p>Each <code>go-whosonfirst-spelunker-{DATABASE}</code> provides codes and applications specific to its implementation. Each package imports the code from the <code>go-whosonfirst-spelunker</code> package and <em>MAY</em> import code from the <code>go-whosonfirst-spelunker-httpd</code> package, discussed below.</p>
+<p>Each <code>go-whosonfirst-spelunker-{DATABASE}</code> provides code and applications specific to its implementation. By definition no two implementations will implement the underlying "spelunker" interface the same way and each will have its own trade-offs. Some will be easier to run locally with small datasets with performance costs that are fine for development work but not production traffic. Others are geared towards a production environment but which require non-trivial configuration and set up costs. Both of these are valid use cases and the goal of the "v2" Spelunker is to be able to support each of them which is why the code base has been split up in to three parts.</p>
+
+<p>Each package imports the code from the <code>go-whosonfirst-spelunker</code> package and <em>MAY</em> import code from the <code>go-whosonfirst-spelunker-httpd</code> package, discussed below.</p>
 
 <h3>go-whosonfirst-spelunker-httpd</h3>
 
-<p>This package...</p>
+<p>This package implements the actual Spelunker web application. These are the web pages that humans can look at and interact with and the web "resources" that machines and robots (including the Spelunker web application itself) can consume data from.</p>
 
-    
+<p>The thinking here is to separate the Spelunker "interface" and the implementation of that interface from the Spelunker application itself. In that way the code is this package is <em>like</em> a kind of interface in that by default it doesn't actually do anything. Concretely it will run but the default Spelunker implementation it uses is the <code>NullSpelunker</code> package which simply returns "Not implemented" for every method defined by the Spelunker interface.</p>
+
+<p>It is assumed that database-specific implementations of the Spelunker interface will also provide a "server" application that, under the hood, imports the core of the Spelunker application from <code>go-whosonfirst-spelunker-httpd</code> and then supplements that code with its own specific logic. For example, here is what the code the "server" application in the <code>go-whosonfirst-spelunker-opensearch</code> package looks like:</p>
+
+<pre>
+package main
+
+import (
+	"context"
+	"log/slog"
+	"os"
+
+	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd/app/server"
+	_ "github.com/whosonfirst/go-whosonfirst-spelunker-opensearch"
+)
+
+func main() {
+	ctx := context.Background()
+	logger := slog.Default()
+	server.Run(ctx, logger)
+}
+</pre>
+
+<h2>Examples</h2>
+
+<p>For examples of how to set up and run the <code>go-whosonfirst-spelunker-opensearch</code> or the <code>go-whosonfirst-spelunker-sql</code> Spelunker applications please consult the <a href="/howto">How To</a> section.</p>
+
 {{ template "inc_foot" . -}}
 {{ end -}}

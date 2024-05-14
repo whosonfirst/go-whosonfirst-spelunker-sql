@@ -6,8 +6,8 @@ require (
 	github.com/aaronland/go-pagination v0.3.0
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/whosonfirst/go-whosonfirst-placetypes v0.7.2
-	github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240402155952-8bcf14040388
-	github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240403154010-61c207409c22
+	github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240503161612-eef4568c21df
+	github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240513160104-33b42b20429f
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7
 	github.com/whosonfirst/go-whosonfirst-sql v0.0.4
 	github.com/whosonfirst/go-whosonfirst-sqlite-spr v0.3.3
@@ -31,11 +31,12 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/paulmach/go.geojson v1.4.0 // indirect
 	github.com/paulmach/orb v0.10.0 // indirect
+	github.com/rs/cors v1.11.0 // indirect
 	github.com/sfomuseum/go-edtf v1.1.1 // indirect
 	github.com/sfomuseum/go-flags v0.10.0 // indirect
 	github.com/sfomuseum/go-geojsonld v1.0.0 // indirect
 	github.com/sfomuseum/go-http-auth v0.11.0 // indirect
-	github.com/sfomuseum/go-template v1.9.0 // indirect
+	github.com/sfomuseum/go-template v1.10.0 // indirect
 	github.com/sfomuseum/iso8601duration v1.1.0 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
 	github.com/tidwall/gjson v1.17.1 // indirect
@@ -51,5 +52,5 @@ require (
 	github.com/whosonfirst/go-whosonfirst-sources v0.2.0 // indirect
 	github.com/whosonfirst/go-whosonfirst-svg v0.1.0 // indirect
 	go.mongodb.org/mongo-driver v1.11.4 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/text v0.15.0 // indirect
 )
