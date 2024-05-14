@@ -7,7 +7,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/whosonfirst/go-whosonfirst-placetypes v0.7.2
 	github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240503161612-eef4568c21df
-	github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240513160104-33b42b20429f
+	github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240514153819-300d2cecece1
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7
 	github.com/whosonfirst/go-whosonfirst-sql v0.0.4
 	github.com/whosonfirst/go-whosonfirst-sqlite-spr v0.3.3

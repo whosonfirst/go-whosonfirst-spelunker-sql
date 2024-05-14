@@ -145,7 +145,7 @@ github.com/whosonfirst/go-whosonfirst-sources/sources
 github.com/whosonfirst/go-whosonfirst-spelunker
 github.com/whosonfirst/go-whosonfirst-spelunker/app/cli
 github.com/whosonfirst/go-whosonfirst-spelunker/document
-# github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240513160104-33b42b20429f
+# github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240514153819-300d2cecece1
 ## explicit; go 1.22
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/api
