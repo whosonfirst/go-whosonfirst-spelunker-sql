@@ -8,7 +8,8 @@ GOTAGS=icu json1 fts5
 cli:
 	go build -mod $(GOMOD) -tags="$(GOTAGS)" -ldflags="$(LDFLAGS)" -o bin/httpd cmd/httpd/main.go
 
-SPELUNKER_URI=sql://sqlite3?dsn=file:/usr/local/data/ca-search.db
+SPELUNKER_DATABASE=/usr/local/data/ca-search.db
+SPELUNKER_URI=sql://sqlite3?dsn=file:$(SPELUNKER_DATABASE)
 
 server:
 	go run -mod $(GOMOD) -tags "$(GOTAGS)" cmd/httpd/main.go \

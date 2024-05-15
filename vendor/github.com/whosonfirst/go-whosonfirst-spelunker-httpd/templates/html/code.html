@@ -47,7 +47,7 @@
 <p>This package implements the actual Spelunker web application. These are the web pages that humans can look at and interact with and the web "resources" that machines and robots (including the Spelunker web application itself) can consume data from. For example, this is the package that renders the page you are currently looking at.</p>
 
 <p class="biglink hey-look">
-    <a href="https://github.com/whosonfirst/go-whosonfirst-spelunker-http">https://github.com/whosonfirst/go-whosonfirst-spelunker-httpd</a>
+    <a href="https://github.com/whosonfirst/go-whosonfirst-spelunker-httpd">https://github.com/whosonfirst/go-whosonfirst-spelunker-httpd</a>
 </p>
 
 <p>The thinking here is to separate the Spelunker "interface" and the implementation of that interface from the Spelunker application itself. In that way the code in this package (<code>go-whosonfirst-spelunker-httpd</code>) is <em>like</em> a kind of interface in that by default it doesn't actually do anything. Concretely it will run but the default Spelunker implementation it uses is the <code>NullSpelunker</code> package which simply returns "Not implemented" for every method defined by the Spelunker interface.</p>

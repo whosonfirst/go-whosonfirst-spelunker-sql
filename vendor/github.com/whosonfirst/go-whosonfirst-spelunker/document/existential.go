@@ -24,13 +24,13 @@ func AppendExistentialDetails(ctx context.Context, body []byte) ([]byte, error) 
 
 	deprecated_rsp := root.Get("edtf:deprecated")
 
-	if deprecated_rsp.Exists() && deprecated_rsp.String() != edtf.UNKNOWN {
+	if deprecated_rsp.Exists() && deprecated_rsp.String() != edtf.UNKNOWN && deprecated_rsp.String() != edtf.UNKNOWN_2012 {
 		is_deprecated = 1
 	}
 
 	ceased_rsp := root.Get("edtf:cessation")
 
-	if ceased_rsp.Exists() && ceased_rsp.String() != edtf.UNKNOWN {
+	if ceased_rsp.Exists() && ceased_rsp.String() != edtf.UNKNOWN && deprecated_rsp.String() != edtf.UNKNOWN_2012 {
 		is_ceased = 1
 	}
 

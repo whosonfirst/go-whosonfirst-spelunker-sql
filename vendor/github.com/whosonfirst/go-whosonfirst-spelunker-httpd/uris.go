@@ -90,6 +90,12 @@ func (u *URIs) ApplyPrefix(prefix string) error {
 
 func DefaultURIs() *URIs {
 
+	// Note that the default path for ID-related URIs is "/id/{id}/foo"
+	// mostly so that the URIForId template function will work. More generic
+	// catch-all paths are stored in {NAME}Alt URI definitions. For example:
+	// GeoJSON: "/id/{id}/geojson" handles: "http://localhost:8080/id/1327010993/geojson"
+	// GeoJSONAlt: []string{ "/geojson", } handles: "http://localhost:8080/geojson/132/701/099/3/1327010993.geojson"
+	
 	uris_table := &URIs{
 
 		// WWW/human-readable
@@ -125,33 +131,33 @@ func DefaultURIs() *URIs {
 
 		FindingAid: "/findingaid/",
 
-		GeoJSON: "/geojson/",
+		GeoJSON: 			"/id/{id}/geojson",
 		GeoJSONAlt: []string{
-			"/id/{id}/geojson",
+			"/geojson/",
 		},
-		GeoJSONLD: "/geojsonld/",
+		GeoJSONLD: "/id/{id}/geojsonld",
 		GeoJSONLDAlt: []string{
-			"/id/{id}/geojsonld",
+			"/geojsonld/",
 		},
-		NavPlace: "/navplace/",
+		NavPlace: "/id/{id}/navplace",
 		NavPlaceAlt: []string{
-			"/id/{id}/navplace",
+			"/navplace/",
 		},
 		NullIslandFaceted: "/nullisland/facets",
 		PlacetypeFaceted:  "/placetypes/{placetype}/facets",
 		RecentFaceted:     "/recent/{duration}/facets",
 		SearchFaceted:     "/search/facets",
-		Select:            "/select/",
+		Select:            "/id/{id}/select",
 		SelectAlt: []string{
-			"/id/{id}/select",
+			"/select/",
 		},
-		SPR: "/spr/",
+		SPR: "/id/{id}/spr",
 		SPRAlt: []string{
-			"/id/{id}/spr",
+			"/spr/",
 		},
-		SVG: "/svg/",
+		SVG: "/id/{id}/svg",
 		SVGAlt: []string{
-			"/id/{id}/svg",
+			"/svg/",
 		},
 	}
 

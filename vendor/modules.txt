@@ -140,12 +140,12 @@ github.com/whosonfirst/go-whosonfirst-placetypes
 ## explicit; go 1.18
 github.com/whosonfirst/go-whosonfirst-sources
 github.com/whosonfirst/go-whosonfirst-sources/sources
-# github.com/whosonfirst/go-whosonfirst-spelunker v0.0.0-20240503161612-eef4568c21df
+# github.com/whosonfirst/go-whosonfirst-spelunker v0.0.1
 ## explicit; go 1.22
 github.com/whosonfirst/go-whosonfirst-spelunker
 github.com/whosonfirst/go-whosonfirst-spelunker/app/cli
 github.com/whosonfirst/go-whosonfirst-spelunker/document
-# github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.0-20240514153819-300d2cecece1
+# github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.2
 ## explicit; go 1.22
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/api

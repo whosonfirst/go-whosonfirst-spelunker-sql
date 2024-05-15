@@ -55,7 +55,8 @@ func setupWWW() {
 	setupCommonOnce.Do(setupCommon)
 
 	if setupCommonError != nil {
-		setupWWWError = fmt.Errorf("Common setup failed, %w", err)
+		slog.Error("Failed to set up common configuration", "error", setupCommonError)
+		setupWWWError = fmt.Errorf("Common setup failed, %w", setupCommonError)
 		return
 	}
 

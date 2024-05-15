@@ -52,7 +52,8 @@
 		{{ else -}}
 		<li><a href="{{ URIForId .URIs.Descendants .Id }}">See all the descendants of {{ GjsonGet .Properties "wof:name" }}</a></li>
 		{{ end -}}
-		<li><a href="{{ URIForId .URIs.GeoJSON .Id }}">Raw data (GeoJSON)</a></li>
+		<li><a href="{{ URIForId .URIs.GeoJSON .Id }}">As GeoJSON (raw data)</a></li>
+		<!-- <li><a href="{{ URIForId .URIs.SVG .Id }}">As SVG</a></li> -->
 		<li><a href="{{ .GitHubURL }}" target="github">View on GitHub</a></li>
 		<li id="writefield-link"><a href="https://writefield.nextzen.org/place/edit?url={{ .WriteFieldURL }}" target="writefield">Edit in Write Field</a></li>
 	    </ul>
