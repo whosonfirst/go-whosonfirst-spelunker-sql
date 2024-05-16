@@ -95,7 +95,7 @@ func DefaultURIs() *URIs {
 	// catch-all paths are stored in {NAME}Alt URI definitions. For example:
 	// GeoJSON: "/id/{id}/geojson" handles: "http://localhost:8080/id/1327010993/geojson"
 	// GeoJSONAlt: []string{ "/geojson", } handles: "http://localhost:8080/geojson/132/701/099/3/1327010993.geojson"
-	
+
 	uris_table := &URIs{
 
 		// WWW/human-readable
@@ -131,7 +131,7 @@ func DefaultURIs() *URIs {
 
 		FindingAid: "/findingaid/",
 
-		GeoJSON: 			"/id/{id}/geojson",
+		GeoJSON: "/id/{id}/geojson",
 		GeoJSONAlt: []string{
 			"/geojson/",
 		},

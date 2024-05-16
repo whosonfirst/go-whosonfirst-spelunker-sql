@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"regexp"
+	"strconv"
 
 	"github.com/aaronland/go-http-sanitize"
 	"github.com/aaronland/go-pagination"
@@ -12,6 +14,7 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
+	"github.com/whosonfirst/go-whosonfirst-uri"
 )
 
 type SearchHandlerOptions struct {
@@ -29,6 +32,7 @@ type SearchHandlerVars struct {
 	PaginationURL    string
 	FacetsURL        string
 	FacetsContextURL string
+	Feature          spr.StandardPlacesResult
 	SearchOptions    *spelunker.SearchOptions
 }
 
@@ -44,6 +48,12 @@ func SearchHandler(opts *SearchHandlerOptions) (http.Handler, error) {
 
 	if results_t == nil {
 		return nil, fmt.Errorf("Failed to locate 'search_results' template")
+	}
+
+	re_wofid, err := regexp.Compile(`^\d+$$`)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse WOF ID regular expression, %w", err)
 	}
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
@@ -102,6 +112,9 @@ func SearchHandler(opts *SearchHandlerOptions) (http.Handler, error) {
 			return
 		}
 
+		// TBD - Do this concurrently in Go routines? It kind of feels like yak-shaving
+		// at this stage...
+
 		r, pg_r, err := opts.Spelunker.Search(ctx, pg_opts, search_opts, filters)
 
 		if err != nil {
@@ -121,6 +134,66 @@ func SearchHandler(opts *SearchHandlerOptions) (http.Handler, error) {
 		vars.FacetsURL = facets_url
 		vars.FacetsContextURL = facets_context_url
 		vars.SearchOptions = search_opts
+
+		//
+
+		if re_wofid.MatchString(q) {
+
+			var wof_id int64
+			var wof_f []byte
+			var wof_s spr.StandardPlacesResult
+
+			wofid_ok := true
+
+			if wofid_ok {
+
+				v, err := strconv.ParseInt(q, 10, 64)
+
+				if err != nil {
+					slog.Error("Failed to parse ID", "q", q, "error", err)
+					wofid_ok = false
+				}
+
+				wof_id = v
+			}
+
+			// Check min/max here...
+
+			// To do: Replace this with opts.Spelunker.GetSPRForId
+			// once the kinks have been worked out
+
+			if wofid_ok {
+
+				uri_args := new(uri.URIArgs)
+
+				f, err := opts.Spelunker.GetFeatureForId(ctx, wof_id, uri_args)
+
+				if err != nil {
+					slog.Error("Failed to get by ID", "error", err)
+					wofid_ok = false
+				}
+
+				wof_f = f
+			}
+
+			if wofid_ok {
+
+				v, err := spr.WhosOnFirstSPR(wof_f)
+
+				if err != nil {
+					slog.Error("Failed to derive SPR for feature", "id", wof_id, "error", err)
+					wofid_ok = false
+				}
+
+				wof_s = v
+			}
+
+			if wofid_ok {
+				vars.Feature = wof_s
+			}
+		}
+
+		//
 
 		rsp.Header().Set("Content-Type", "text/html")
 

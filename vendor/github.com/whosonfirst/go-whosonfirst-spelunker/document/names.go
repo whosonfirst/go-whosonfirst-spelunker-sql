@@ -15,7 +15,7 @@ import (
 // * The unique set of language translations
 // * The total number of names
 // * The total number of languages
-// * The total number of "prefered" names
+// * The total number of "preferred" names
 // * The total number of "variant" names
 func AppendNameStats(ctx context.Context, body []byte) ([]byte, error) {
 
@@ -32,7 +32,7 @@ func AppendNameStats(ctx context.Context, body []byte) ([]byte, error) {
 
 	count_names_total := 0
 	count_names_languages := 0
-	count_names_prefered := 0
+	count_names_preferred := 0
 	count_names_colloquial := 0
 	count_names_variant := 0
 
@@ -66,8 +66,8 @@ func AppendNameStats(ctx context.Context, body []byte) ([]byte, error) {
 		}
 
 		switch qualifier {
-		case "prefered":
-			count_names_prefered += count_names
+		case "preferred":
+			count_names_preferred += count_names
 		case "variant":
 			count_names_variant += count_names
 		case "colloquial":
@@ -89,7 +89,7 @@ func AppendNameStats(ctx context.Context, body []byte) ([]byte, error) {
 	count_props := map[string]interface{}{
 		"translations":           translations,
 		"counts:names_total":     count_names_total,
-		"counts:names_prefered":  count_names_prefered,
+		"counts:names_preferred": count_names_preferred,
 		"counts:names_variant":   count_names_variant,
 		"counts:names_languages": count_names_languages,
 	}

@@ -12,6 +12,13 @@ a {
 }
 
 code {
+	padding-left: .5rem;
+	padding-right: .5rem;
+	color: initial !important;
+	margin: initial !important;	
+}
+
+.pcode {
 	font-size: 1.4rem !important;
 	color:#000 !important;
 	font-weight: 400;

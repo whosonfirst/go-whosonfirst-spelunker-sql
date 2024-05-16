@@ -4,14 +4,14 @@ window.addEventListener("load", function load(event){
     var facets_wrapper = document.querySelector("#whosonfirst-facets");
 
     if (! facets_wrapper){
-	console.log("NOPE");
+	console.log("Missing #whosonfirst-facets wrapper");
 	return;
     }
 
     var current_url = facets_wrapper.getAttribute("data-current-url");
     var facets_url = facets_wrapper.getAttribute("data-facets-url");    
 
-    console.log("FACETS", facets_url);
+    // console.log("FACETS", facets_url);
     
     if ((! current_url) || (! facets_url)){
 	return;
@@ -86,8 +86,11 @@ window.addEventListener("load", function load(event){
 		sp.setAttribute("class", "hey-look");
 		sp.appendChild(document.createTextNode("undefined"));
 
+		var facet_count = results[i].count;
+		facet_count = Intl.NumberFormat().format(facet_count);
+		
 		var sm = document.createElement("small");
-		sm.appendChild(document.createTextNode(results[i].count));
+		sm.appendChild(document.createTextNode(facet_count));
 		
 		var item = document.createElement("li");
 		item.appendChild(sp);
@@ -127,7 +130,17 @@ window.addEventListener("load", function load(event){
 			
 			break;
 		default:
-			//
+
+			if (f_label == "country"){
+
+			    var country = whosonfirst.spelunker.countries.by_code(k);
+
+			    if (country){
+				k_label = country["wof:name"];
+			    } else {
+				console.log("Unable to determine country name for " + k);
+			    }
+			}
 		}
 		
 		// Something something something is location.href really safe?
@@ -146,9 +159,12 @@ window.addEventListener("load", function load(event){
 		}
 		
 		a.appendChild(document.createTextNode(k_label));
+
+		var facet_count = results[i].count;
+		facet_count = Intl.NumberFormat().format(facet_count);
 		
 		var sm = document.createElement("small");
-		sm.appendChild(document.createTextNode(results[i].count));
+		sm.appendChild(document.createTextNode(facet_count));
 		
 		var item = document.createElement("li");
 		item.appendChild(a);

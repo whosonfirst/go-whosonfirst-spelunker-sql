@@ -3,7 +3,7 @@
 
 <ul class="whosonfirst-facets">
     {{ range $i, $f := .Facets -}}
-    <li><a href="{{ $.URIs.Placetypes }}/{{ $f.Key }}" class="hey-look">{{ $f.Key }}</a> <small>{{ $f.Count }}</small></li>
+    <li><a href="{{ $.URIs.Placetypes }}/{{ $f.Key }}" class="hey-look">{{ $f.Key }}</a> <small>{{ FormatNumber $f.Count }}</small></li>
     {{ end -}}
 </ul>
 
