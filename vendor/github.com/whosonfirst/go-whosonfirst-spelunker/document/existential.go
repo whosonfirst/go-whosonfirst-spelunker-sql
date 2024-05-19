@@ -3,8 +3,8 @@ package document
 import (
 	"context"
 	"fmt"
-	_ "log"
-
+	_ "log/slog"
+	
 	"github.com/sfomuseum/go-edtf"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -24,14 +24,20 @@ func AppendExistentialDetails(ctx context.Context, body []byte) ([]byte, error) 
 
 	deprecated_rsp := root.Get("edtf:deprecated")
 
-	if deprecated_rsp.Exists() && deprecated_rsp.String() != edtf.UNKNOWN && deprecated_rsp.String() != edtf.UNKNOWN_2012 {
-		is_deprecated = 1
+	if deprecated_rsp.Exists() {
+
+		if deprecated_rsp.String() != edtf.UNKNOWN && deprecated_rsp.String() != edtf.UNKNOWN_2012 {
+			is_deprecated = 1
+		}
 	}
 
 	ceased_rsp := root.Get("edtf:cessation")
 
-	if ceased_rsp.Exists() && ceased_rsp.String() != edtf.UNKNOWN && deprecated_rsp.String() != edtf.UNKNOWN_2012 {
-		is_ceased = 1
+	if ceased_rsp.Exists() {
+		
+		if ceased_rsp.String() != edtf.UNKNOWN && ceased_rsp.String() != edtf.UNKNOWN_2012 {
+			is_ceased = 1
+		}
 	}
 
 	to_assign := map[string]interface{}{

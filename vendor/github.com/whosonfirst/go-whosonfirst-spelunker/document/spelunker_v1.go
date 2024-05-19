@@ -1,5 +1,7 @@
 package document
 
+// Now that the "v1" spelunker has been retired, this code should be considered deprecated.
+
 import (
 	"context"
 )

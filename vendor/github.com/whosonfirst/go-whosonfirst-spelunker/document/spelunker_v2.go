@@ -2,19 +2,41 @@ package document
 
 import (
 	"context"
+	"fmt"
+	_ "log/slog"
+
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 )
 
 // PrepareSpelunkerV2Document prepares a Who's On First document for indexing with the
 // "v2" OpenSearch (v2.x) schema. For details please consult:
 func PrepareSpelunkerV2Document(ctx context.Context, body []byte) ([]byte, error) {
 
-	prepped, err := ExtractProperties(ctx, body)
+	props, err := ExtractProperties(ctx, body)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return AppendSpelunkerV2Properties(ctx, prepped)
+	geom, err := ExtractGeometry(ctx, body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	type_rsp := gjson.GetBytes(geom, "type")
+
+	if type_rsp.Exists() {
+
+		props, err = sjson.SetBytes(props, "geom:type", type_rsp.String())
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to set geom:type, %w", err)
+		}
+	}
+
+	return AppendSpelunkerV2Properties(ctx, props)
 }
 
 // AppendSpelunkerV2Properties appends properties specific to the v2" OpenSearch (v2.x) schema
