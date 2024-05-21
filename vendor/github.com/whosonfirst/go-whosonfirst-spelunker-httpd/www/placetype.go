@@ -30,6 +30,7 @@ type HasPlacetypeHandlerVars struct {
 	PaginationURL    string
 	FacetsURL        string
 	FacetsContextURL string
+	OpenGraph        *OpenGraph
 }
 
 func HasPlacetypeHandler(opts *HasPlacetypeHandlerOptions) (http.Handler, error) {
@@ -100,6 +101,30 @@ func HasPlacetypeHandler(opts *HasPlacetypeHandlerOptions) (http.Handler, error)
 			PaginationURL:    pagination_url,
 			FacetsURL:        facets_url,
 			FacetsContextURL: facets_context_url,
+		}
+
+		// START OF put me in a function or something...
+
+		var og_label string
+
+		switch pt.Name {
+		case "ocean", "empire":
+			og_label = fmt.Sprintf("an %s", pt.Name)
+		default:
+			og_label = fmt.Sprintf("a %s", pt.Name)
+		}
+
+		// END OF put me in a function or something...
+
+		og_title := fmt.Sprintf(`Who's On First \"%s\" records`, pt.Name)
+		og_desc := fmt.Sprintf("Who's On First records that are %s", og_label)
+
+		vars.OpenGraph = &OpenGraph{
+			Type:        "Article",
+			SiteName:    "Who's On First Spelunker",
+			Title:       og_title,
+			Description: og_desc,
+			Image:       "",
 		}
 
 		rsp.Header().Set("Content-Type", "text/html")

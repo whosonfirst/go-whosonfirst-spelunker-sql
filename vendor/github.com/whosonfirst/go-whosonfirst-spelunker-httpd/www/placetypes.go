@@ -22,6 +22,7 @@ type PlacetypesHandlerVars struct {
 	PageTitle string
 	URIs      *httpd.URIs
 	Facets    []*spelunker.FacetCount
+	OpenGraph *OpenGraph
 }
 
 func PlacetypesHandler(opts *PlacetypesHandlerOptions) (http.Handler, error) {
@@ -51,6 +52,14 @@ func PlacetypesHandler(opts *PlacetypesHandlerOptions) (http.Handler, error) {
 			PageTitle: "Placetypes",
 			URIs:      opts.URIs,
 			Facets:    faceting.Results,
+		}
+
+		vars.OpenGraph = &OpenGraph{
+			Type:        "Article",
+			SiteName:    "Who's On First Spelunker",
+			Title:       "Who's On First Placetypes",
+			Description: "Who's On First records grouped by their place types",
+			Image:       "",
 		}
 
 		rsp.Header().Set("Content-Type", "text/html")

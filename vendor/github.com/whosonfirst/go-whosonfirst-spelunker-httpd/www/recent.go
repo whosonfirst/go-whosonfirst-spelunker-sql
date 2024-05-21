@@ -35,6 +35,7 @@ type RecentHandlerVars struct {
 	Since            string
 	FacetsURL        string
 	FacetsContextURL string
+	OpenGraph        *OpenGraph
 }
 
 func RecentHandler(opts *RecentHandlerOptions) (http.Handler, error) {
@@ -136,6 +137,14 @@ func RecentHandler(opts *RecentHandlerOptions) (http.Handler, error) {
 			Since:            since,
 			FacetsURL:        facets_url,
 			FacetsContextURL: facets_context_url,
+		}
+
+		vars.OpenGraph = &OpenGraph{
+			Type:        "Article",
+			SiteName:    "Who's On First Spelunker",
+			Title:       "Who's On First recently updated records",
+			Description: fmt.Sprintf("Who's On First records that have been updated since %s", since),
+			Image:       "",
 		}
 
 		rsp.Header().Set("Content-Type", "text/html")

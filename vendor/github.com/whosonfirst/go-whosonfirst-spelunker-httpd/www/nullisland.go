@@ -28,6 +28,7 @@ type NullIslandHandlerVars struct {
 	PaginationURL    string
 	FacetsURL        string
 	FacetsContextURL string
+	OpenGraph        *OpenGraph
 }
 
 func NullIslandHandler(opts *NullIslandHandlerOptions) (http.Handler, error) {
@@ -85,6 +86,19 @@ func NullIslandHandler(opts *NullIslandHandlerOptions) (http.Handler, error) {
 			PaginationURL:    pagination_url,
 			FacetsURL:        facets_url,
 			FacetsContextURL: facets_context_url,
+		}
+
+		// To do: Fix me – why doesn't req.URL.Host work?
+		og_host := "https://spelunker.whosonfirst.org"
+
+		og_image := og_host + httpd.URIForIdSimple(opts.URIs.SVG, 0)
+
+		vars.OpenGraph = &OpenGraph{
+			Type:        "Article",
+			SiteName:    "Who's On First Spelunker",
+			Title:       `Who's On First records that are "visiting" Null Island`,
+			Description: "Who's On First records with missing or undetermined geographies",
+			Image:       og_image,
 		}
 
 		rsp.Header().Set("Content-Type", "text/html")

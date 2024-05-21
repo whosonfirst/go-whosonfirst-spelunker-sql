@@ -34,6 +34,7 @@ type SearchHandlerVars struct {
 	FacetsContextURL string
 	Feature          spr.StandardPlacesResult
 	SearchOptions    *spelunker.SearchOptions
+	OpenGraph        *OpenGraph
 }
 
 func SearchHandler(opts *SearchHandlerOptions) (http.Handler, error) {
@@ -66,6 +67,14 @@ func SearchHandler(opts *SearchHandlerOptions) (http.Handler, error) {
 		vars := SearchHandlerVars{
 			URIs:      opts.URIs,
 			PageTitle: "Search",
+		}
+
+		vars.OpenGraph = &OpenGraph{
+			Type:        "Article",
+			SiteName:    "Who's On First Spelunker",
+			Title:       "Who's On First Search",
+			Description: "Search for Who's On First records in the Spelunker",
+			Image:       "",
 		}
 
 		q, err := sanitize.GetString(req, "q")
@@ -122,6 +131,9 @@ func SearchHandler(opts *SearchHandlerOptions) (http.Handler, error) {
 			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
 			return
 		}
+
+		vars.OpenGraph.Title = fmt.Sprintf(`Search results for \"%s\"`, q)
+		vars.OpenGraph.Description = fmt.Sprintf(`Who's On First records matching the query term \"%s\"`, q)
 
 		vars.Places = r.Results()
 		vars.Pagination = pg_r

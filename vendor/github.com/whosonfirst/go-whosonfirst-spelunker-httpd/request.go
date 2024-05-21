@@ -193,7 +193,7 @@ func FeatureFromRequestURI(ctx context.Context, sp spelunker.Spelunker, req_uri 
 	f, err := sp.GetFeatureForId(ctx, wof_id, req_uri.URIArgs)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to retrieve feature for %d, %w", err)
+		return nil, fmt.Errorf("Failed to retrieve feature for %d, %w", wof_id, err)
 	}
 
 	return f, nil
@@ -206,7 +206,7 @@ func RecordFromRequestURI(ctx context.Context, sp spelunker.Spelunker, req_uri *
 	f, err := sp.GetRecordForId(ctx, wof_id, req_uri.URIArgs)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to retrieve record for %d, %w", err)
+		return nil, fmt.Errorf("Failed to retrieve record for %d, %w", wof_id, err)
 	}
 
 	return f, nil
@@ -219,7 +219,7 @@ func SPRFromRequestURI(ctx context.Context, sp spelunker.Spelunker, req_uri *URI
 	f, err := sp.GetSPRForId(ctx, wof_id, req_uri.URIArgs)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to retrieve record for %d, %w", err)
+		return nil, fmt.Errorf("Failed to retrieve record for %d, %w", wof_id, err)
 	}
 
 	return f, nil

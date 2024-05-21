@@ -40,6 +40,7 @@ type IdHandlerVars struct {
 	RelPath          string
 	GitHubURL        string
 	WriteFieldURL    string
+	OpenGraph        *OpenGraph
 }
 
 func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
@@ -96,7 +97,17 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 			return
 		}
 
-		page_title := gjson.GetBytes(f, "wof:name")
+		name_rsp := gjson.GetBytes(f, "wof:name")
+		wof_name := name_rsp.String()
+
+		country_rsp := gjson.GetBytes(f, "wof:country")
+		wof_country := country_rsp.String()
+
+		country_name, country_exists := httpd.CountryCodeLookup[wof_country]
+
+		if !country_exists {
+			country_name = wof_country
+		}
 
 		rel_path, err := uri.Id2RelPath(wof_id, req_uri.URIArgs)
 
@@ -115,7 +126,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 			RequestId:  req_id,
 			URIArgs:    req_uri.URIArgs,
 			Properties: string(f),
-			PageTitle:  page_title.String(),
+			PageTitle:  wof_name,
 			GitHubURL:  github_url,
 			URIs:       opts.URIs,
 			RelPath:    rel_path,
@@ -224,6 +235,46 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		vars.CountDescendants = count_descendants
 		vars.Hierarchies = handler_hierarchies
 		vars.WriteFieldURL = writefield_url
+
+		// START OF put me in a function or something...
+
+		var og_desc string
+
+		switch str_pt.String() {
+		case "continent", "planet":
+			og_desc = fmt.Sprintf("%s (%d) is a %s", wof_name, wof_id, str_pt.String())
+		case "empire", "ocean":
+			og_desc = fmt.Sprintf("%s (%d) is an %s", wof_name, wof_id, str_pt.String())
+		case "country":
+			og_desc = fmt.Sprintf("%s (%d) is a %s :flag-%s:", wof_name, wof_id, str_pt.String(), strings.ToLower(wof_country))
+		default:
+
+			var og_country string
+
+			switch wof_country {
+			case "US":
+				og_country = fmt.Sprintf("the %s", country_name)
+			default:
+				og_country = country_name
+			}
+
+			og_desc = fmt.Sprintf("%s (%d) is a %s in %s :flag-%s:", wof_name, wof_id, str_pt.String(), og_country, strings.ToLower(wof_country))
+		}
+
+		// END OF put me in a function or something...
+
+		// To do: Fix me – why doesn't req.URL.Host work?
+		og_host := "https://spelunker.whosonfirst.org"
+
+		og_image := og_host + httpd.URIForIdSimple(opts.URIs.SVG, wof_id)
+
+		vars.OpenGraph = &OpenGraph{
+			Type:        "Article",
+			SiteName:    "Who's On First Spelunker",
+			Title:       wof_name,
+			Description: og_desc,
+			Image:       og_image,
+		}
 
 		rsp.Header().Set("Content-Type", "text/html")
 

@@ -32,6 +32,7 @@ type HasConcordanceHandlerVars struct {
 	FacetsURL        string
 	FacetsContextURL string
 	Source           *sources.WOFSource
+	OpenGraph        *OpenGraph
 }
 
 func HasConcordanceHandler(opts *HasConcordanceHandlerOptions) (http.Handler, error) {
@@ -158,6 +159,14 @@ func HasConcordanceHandler(opts *HasConcordanceHandlerOptions) (http.Handler, er
 			PaginationURL:    pagination_url,
 			FacetsURL:        facets_url,
 			FacetsContextURL: facets_context_url,
+		}
+
+		vars.OpenGraph = &OpenGraph{
+			Type:        "Article",
+			SiteName:    "Who's On First Spelunker",
+			Title:       fmt.Sprintf(`Who's On First concordances for \"%s\"`, c),
+			Description: fmt.Sprintf(`Who's On First records that "hold hands" with records from %s`, src.Fullname),
+			Image:       "",
 		}
 
 		rsp.Header().Set("Content-Type", "text/html")
