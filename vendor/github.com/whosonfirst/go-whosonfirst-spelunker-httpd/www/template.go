@@ -3,7 +3,6 @@ package www
 import (
 	"fmt"
 	"html/template"
-	"log/slog"
 	"net/http"
 
 	"github.com/sfomuseum/go-http-auth"
@@ -34,12 +33,9 @@ func TemplateHandler(opts *TemplateHandlerOptions) (http.Handler, error) {
 		return nil, fmt.Errorf("Failed to locate ihelp' template")
 	}
 
-	logger := slog.Default()
-
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
-		logger = logger.With("request", req.URL)
-		logger = logger.With("address", req.RemoteAddr)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		vars := TemplateHandlerVars{
 			PageTitle: opts.PageTitle,
@@ -59,8 +55,8 @@ func TemplateHandler(opts *TemplateHandlerOptions) (http.Handler, error) {
 		err := t.Execute(rsp, vars)
 
 		if err != nil {
-			slog.Error("Failed to return ", "error", err)
-			http.Error(rsp, "womp womp", http.StatusInternalServerError)
+			logger.Error("Failed to render template ", "error", err)
+			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
 		}
 
 	}

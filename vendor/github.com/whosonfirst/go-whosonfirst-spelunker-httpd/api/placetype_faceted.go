@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 
 	// TBD...
@@ -23,9 +22,7 @@ func PlacetypeFacetedHandler(opts *PlacetypeFacetedHandlerOptions) (http.Handler
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger := slog.Default()
-		logger = logger.With("request", req.URL)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		req_pt := req.PathValue("placetype")
 

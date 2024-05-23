@@ -3,7 +3,6 @@ package www
 import (
 	"fmt"
 	"html/template"
-	"log/slog"
 	"net/http"
 	"strings"
 
@@ -46,9 +45,7 @@ func HasConcordanceHandler(opts *HasConcordanceHandlerOptions) (http.Handler, er
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger := slog.Default()
-		logger = logger.With("request", req.URL)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		ns := req.PathValue("namespace")
 		pred := req.PathValue("predicate")

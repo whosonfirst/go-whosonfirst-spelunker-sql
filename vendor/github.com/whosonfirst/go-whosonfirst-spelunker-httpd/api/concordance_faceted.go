@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"strings"
 
@@ -21,9 +20,7 @@ func HasConcordanceFacetedHandler(opts *HasConcordanceFacetedHandlerOptions) (ht
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger := slog.Default()
-		logger = logger.With("request", req.URL)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		ns := req.PathValue("namespace")
 		pred := req.PathValue("predicate")

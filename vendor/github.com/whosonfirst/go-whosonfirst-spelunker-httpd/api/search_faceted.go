@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 
 	"github.com/aaronland/go-http-sanitize"
@@ -21,9 +20,7 @@ func SearchFacetedHandler(opts *SearchFacetedHandlerOptions) (http.Handler, erro
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger := slog.Default()
-		logger = logger.With("request", req.URL)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		q, err := sanitize.GetString(req, "q")
 

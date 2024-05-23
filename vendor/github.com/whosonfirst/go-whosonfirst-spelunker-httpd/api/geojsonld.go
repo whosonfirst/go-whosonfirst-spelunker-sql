@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/sfomuseum/go-geojsonld"
@@ -15,27 +14,30 @@ type GeoJSONLDHandlerOptions struct {
 
 func GeoJSONLDHandler(opts *GeoJSONLDHandlerOptions) (http.Handler, error) {
 
-	logger := slog.Default()
-
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger = logger.With("request", req.URL)
-		logger = logger.With("address", req.RemoteAddr)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		req_uri, err, status := httpd.ParseURIFromRequest(req, nil)
 
 		if err != nil {
-			slog.Error("Failed to parse URI from request", "error", err)
+			logger.Error("Failed to parse URI from request", "error", err)
 			http.Error(rsp, spelunker.ErrNotFound.Error(), status)
 			return
 		}
 
+		if req_uri.Id <= -1 {
+			http.Error(rsp, "Not found", http.StatusNotFound)
+			return
+		}
+
+		logger = logger.With("id", req_uri.Id)
+
 		r, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)
 
 		if err != nil {
-			slog.Error("Failed to get by ID", "id", req_uri.Id, "error", err)
+			logger.Error("Failed to get by ID", "error", err)
 			http.Error(rsp, spelunker.ErrNotFound.Error(), http.StatusNotFound)
 			return
 		}
@@ -43,7 +45,7 @@ func GeoJSONLDHandler(opts *GeoJSONLDHandlerOptions) (http.Handler, error) {
 		body, err := geojsonld.AsGeoJSONLD(ctx, r)
 
 		if err != nil {
-			slog.Error("Failed to render geojson", "id", req_uri.Id, "error", err)
+			logger.Error("Failed to render geojson", "error", err)
 			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
 			return
 		}

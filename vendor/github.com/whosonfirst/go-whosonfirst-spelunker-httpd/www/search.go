@@ -3,7 +3,6 @@ package www
 import (
 	"fmt"
 	"html/template"
-	"log/slog"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -60,9 +59,7 @@ func SearchHandler(opts *SearchHandlerOptions) (http.Handler, error) {
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger := slog.Default()
-		logger = logger.With("request", req.URL)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		vars := SearchHandlerVars{
 			URIs:      opts.URIs,
@@ -162,7 +159,7 @@ func SearchHandler(opts *SearchHandlerOptions) (http.Handler, error) {
 				v, err := strconv.ParseInt(q, 10, 64)
 
 				if err != nil {
-					slog.Error("Failed to parse ID", "q", q, "error", err)
+					logger.Error("Failed to parse ID", "q", q, "error", err)
 					wofid_ok = false
 				}
 
@@ -181,7 +178,7 @@ func SearchHandler(opts *SearchHandlerOptions) (http.Handler, error) {
 				f, err := opts.Spelunker.GetFeatureForId(ctx, wof_id, uri_args)
 
 				if err != nil {
-					slog.Error("Failed to get by ID", "error", err)
+					logger.Error("Failed to get by ID", "error", err)
 					wofid_ok = false
 				}
 
@@ -193,7 +190,7 @@ func SearchHandler(opts *SearchHandlerOptions) (http.Handler, error) {
 				v, err := spr.WhosOnFirstSPR(wof_f)
 
 				if err != nil {
-					slog.Error("Failed to derive SPR for feature", "id", wof_id, "error", err)
+					logger.Error("Failed to derive SPR for feature", "id", wof_id, "error", err)
 					wofid_ok = false
 				}
 

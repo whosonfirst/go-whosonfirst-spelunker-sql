@@ -3,7 +3,6 @@ package api
 // https://preview.iiif.io/api/navplace_extension/api/extension/navplace/
 
 import (
-	"log/slog"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -21,14 +20,10 @@ type NavPlaceHandlerOptions struct {
 // specifically as navPlace "reference" objects.
 func NavPlaceHandler(opts *NavPlaceHandlerOptions) (http.Handler, error) {
 
-	logger := slog.Default()
-
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger = logger.With("request", req.URL)
-		logger = logger.With("address", req.RemoteAddr)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		q := req.URL.Query()
 		base := q.Get("id")
@@ -50,7 +45,7 @@ func NavPlaceHandler(opts *NavPlaceHandlerOptions) (http.Handler, error) {
 			req_uri, err, status := httpd.ParseURIFromPath(ctx, str_id, nil)
 
 			if err != nil {
-				slog.Error("Failed to parse URI from request", "id", str_id, "error", err)
+				logger.Error("Failed to parse URI from request", "id", str_id, "error", err)
 				http.Error(rsp, err.Error(), status)
 				return
 			}
@@ -66,6 +61,7 @@ func NavPlaceHandler(opts *NavPlaceHandlerOptions) (http.Handler, error) {
 		}
 
 		if count > opts.MaxFeatures {
+			logger.Error("Exceed maximum number of features")
 			http.Error(rsp, "Maximum number of IDs exceeded", http.StatusBadRequest)
 			return
 		}
@@ -79,7 +75,7 @@ func NavPlaceHandler(opts *NavPlaceHandlerOptions) (http.Handler, error) {
 			r, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)
 
 			if err != nil {
-				slog.Error("Failed to retrieve record", "id", req_uri.Id, "error", err)
+				logger.Error("Failed to retrieve record", "id", req_uri.Id, "error", err)
 				http.Error(rsp, "Failed to retrieve ID", http.StatusInternalServerError)
 				return
 			}

@@ -19,8 +19,6 @@ whosonfirst.spelunker.feature = (function(){
 	    var _self = self;
 	    var _url = whosonfirst.spelunker.uri.id2abspath(wofid, uri_args);
 
-	    console.log("FETCH", _url);
-	    
 	    return new Promise((resolve, reject) => {	
 
 		var on_hit = function(f){
@@ -37,7 +35,8 @@ whosonfirst.spelunker.feature = (function(){
 			reject(err);
 		    });
 		};
-		
+
+		console.log("FETCH CACHE", _url);
 		whosonfirst.spelunker.cache.get(_url, on_hit, on_miss);
 	    });
 	    

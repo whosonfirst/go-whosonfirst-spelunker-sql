@@ -64,6 +64,8 @@ whosonfirst.spelunker.uri = (function(){
 
 		    if (args["alt"]) {
 
+			fname.push("alt");
+			
 			if (args["source"]){
 
 			    // to do: validate source here
@@ -99,7 +101,6 @@ whosonfirst.spelunker.uri = (function(){
 		    }
 
 		    var str_fname = fname.join("-");
-
 		    return str_fname + ".geojson";
 		}
 	};

@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"regexp"
 
@@ -35,9 +34,7 @@ func RecentFacetedHandler(opts *RecentFacetedHandlerOptions) (http.Handler, erro
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger := slog.Default()
-		logger = logger.With("request", req.URL)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		str_d := req.PathValue("duration")
 

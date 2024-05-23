@@ -30,11 +30,12 @@ window.addEventListener("load", function load(event){
 	var alt_extra = map_el.getAttribute("data-wof-alt-extra");		
 
 	var uri_args = {
+	    alt: true,
 	    source: alt_source,
 	    function: alt_function,
 	    extra: alt_extra,
 	};
-	
+
 	whosonfirst.spelunker.feature.fetch(wof_id, uri_args).then((f) => {
 
 	    var props;

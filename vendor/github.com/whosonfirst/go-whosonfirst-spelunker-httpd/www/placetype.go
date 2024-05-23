@@ -3,7 +3,6 @@ package www
 import (
 	"fmt"
 	"html/template"
-	"log/slog"
 	"net/http"
 
 	"github.com/aaronland/go-pagination"
@@ -44,9 +43,7 @@ func HasPlacetypeHandler(opts *HasPlacetypeHandlerOptions) (http.Handler, error)
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger := slog.Default()
-		logger = logger.With("request", req.URL)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		req_pt := req.PathValue("placetype")
 

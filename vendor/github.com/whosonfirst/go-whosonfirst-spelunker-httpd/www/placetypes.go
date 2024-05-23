@@ -3,7 +3,6 @@ package www
 import (
 	"fmt"
 	"html/template"
-	"log/slog"
 	"net/http"
 
 	"github.com/sfomuseum/go-http-auth"
@@ -36,9 +35,7 @@ func PlacetypesHandler(opts *PlacetypesHandlerOptions) (http.Handler, error) {
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger := slog.Default()
-		logger = logger.With("request", req.URL)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		faceting, err := opts.Spelunker.GetPlacetypes(ctx)
 

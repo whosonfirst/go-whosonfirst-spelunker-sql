@@ -3,7 +3,6 @@ package www
 import (
 	"fmt"
 	"html/template"
-	"log/slog"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -60,9 +59,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger := slog.Default()
-		logger = logger.With("request", req.URL)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		req_uri, err, status := httpd.ParseURIFromRequest(req, nil)
 
@@ -84,7 +81,6 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 
 		req_id = strings.Replace(req_id, filepath.Ext(req_id), "", 1)
 
-		logger = logger.With("request id", req_id)
 		logger = logger.With("wof id", wof_id)
 
 		uri_args := new(uri.URIArgs)

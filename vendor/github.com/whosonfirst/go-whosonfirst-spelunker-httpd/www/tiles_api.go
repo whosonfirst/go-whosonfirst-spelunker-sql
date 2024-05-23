@@ -2,10 +2,10 @@ package www
 
 import (
 	"fmt"
-	"log/slog"
 	"net/http"
 
 	"github.com/jtacoma/uritemplates"
+	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd"
 )
 
 const protomaps_api string = "https://api.protomaps.com/tiles/v3/{z}/{x}/{y}.mvt?key={key}"
@@ -26,8 +26,7 @@ func TilesAPIHandler(opts *TilesAPIHandlerOptions) (http.Handler, error) {
 
 		// ctx := req.Context()
 
-		logger := slog.Default()
-		logger = logger.With("request", req.URL)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		z := req.PathValue("z")
 		x := req.PathValue("x")
@@ -43,7 +42,7 @@ func TilesAPIHandler(opts *TilesAPIHandlerOptions) (http.Handler, error) {
 		tile_url, err := t.Expand(values)
 
 		if err != nil {
-			slog.Error("Failed to expand template", "error", err)
+			logger.Error("Failed to expand template", "error", err)
 			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
 			return
 		}

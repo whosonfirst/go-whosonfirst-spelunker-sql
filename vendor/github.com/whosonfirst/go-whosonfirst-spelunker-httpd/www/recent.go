@@ -3,7 +3,6 @@ package www
 import (
 	"fmt"
 	"html/template"
-	"log/slog"
 	"net/http"
 	"regexp"
 	"time"
@@ -61,9 +60,7 @@ func RecentHandler(opts *RecentHandlerOptions) (http.Handler, error) {
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger := slog.Default()
-		logger = logger.With("request", req.URL)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		str_d := req.PathValue("duration")
 

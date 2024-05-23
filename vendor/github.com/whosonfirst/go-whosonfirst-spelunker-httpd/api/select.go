@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log/slog"
 	"net/http"
 	"regexp"
 
@@ -19,14 +18,10 @@ type SelectHandlerOptions struct {
 
 func SelectHandler(opts *SelectHandlerOptions) (http.Handler, error) {
 
-	logger := slog.Default()
-
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger = logger.With("request", req.URL)
-		logger = logger.With("address", req.RemoteAddr)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		query, err := sanitize.GetString(req, "select")
 
@@ -48,15 +43,22 @@ func SelectHandler(opts *SelectHandlerOptions) (http.Handler, error) {
 		req_uri, err, status := httpd.ParseURIFromRequest(req, nil)
 
 		if err != nil {
-			slog.Error("Failed to parse URI from request", "error", err)
+			logger.Error("Failed to parse URI from request", "error", err)
 			http.Error(rsp, spelunker.ErrNotFound.Error(), status)
 			return
 		}
 
+		if req_uri.Id <= -1 {
+			http.Error(rsp, "Not found", http.StatusNotFound)
+			return
+		}
+
+		logger = logger.With("id", req_uri.Id)
+
 		r, err := httpd.FeatureFromRequestURI(ctx, opts.Spelunker, req_uri)
 
 		if err != nil {
-			slog.Error("Failed to get by ID", "id", req_uri.Id, "error", err)
+			logger.Error("Failed to get by ID", "error", err)
 			http.Error(rsp, spelunker.ErrNotFound.Error(), http.StatusNotFound)
 			return
 		}
@@ -70,6 +72,7 @@ func SelectHandler(opts *SelectHandlerOptions) (http.Handler, error) {
 			enc, err := json.Marshal(query_rsp.Value())
 
 			if err != nil {
+				logger.Error("Failed to marshal response", "error", err)
 				http.Error(rsp, err.Error(), http.StatusInternalServerError)
 				return
 			}

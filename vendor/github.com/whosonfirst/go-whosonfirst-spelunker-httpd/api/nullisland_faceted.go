@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 
 	// "github.com/sfomuseum/go-http-auth"
@@ -20,9 +19,7 @@ func NullIslandFacetedHandler(opts *NullIslandFacetedHandlerOptions) (http.Handl
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		ctx := req.Context()
-
-		logger := slog.Default()
-		logger = logger.With("request", req.URL)
+		logger := httpd.LoggerWithRequest(req, nil)
 
 		filter_params := httpd.DefaultFilterParams()
 
