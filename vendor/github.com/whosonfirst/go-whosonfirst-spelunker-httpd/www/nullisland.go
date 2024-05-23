@@ -88,10 +88,13 @@ func NullIslandHandler(opts *NullIslandHandlerOptions) (http.Handler, error) {
 			FacetsContextURL: facets_context_url,
 		}
 
-		// To do: Fix me – why doesn't req.URL.Host work?
-		og_host := "https://spelunker.whosonfirst.org"
+		svg_url := httpd.URIForIdSimple(opts.URIs.SVG, 0)
 
-		og_image := og_host + httpd.URIForIdSimple(opts.URIs.SVG, 0)
+		og_image, err := opts.URIs.Abs(svg_url)
+
+		if err != nil {
+			logger.Error("Failed to derive absolute URL for SVG image", "url", svg_url, "error", err)
+		}
 
 		vars.OpenGraph = &OpenGraph{
 			Type:        "Article",

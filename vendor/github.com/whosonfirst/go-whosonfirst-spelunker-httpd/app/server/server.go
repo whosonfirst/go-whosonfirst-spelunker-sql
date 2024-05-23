@@ -66,6 +66,7 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, logger *slog.Logger) 
 		run_options.URIs.HowTo:             howtoHandlerFunc,
 		run_options.URIs.Index:             indexHandlerFunc,
 		run_options.URIs.Tiles:             tilesHandlerFunc,
+		run_options.URIs.OpenSearch:        openSearchHandlerFunc,
 
 		// Static assets
 		run_options.URIs.Static: staticHandlerFunc,

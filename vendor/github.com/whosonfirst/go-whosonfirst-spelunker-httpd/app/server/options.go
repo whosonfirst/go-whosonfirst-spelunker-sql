@@ -6,6 +6,7 @@ import (
 	"fmt"
 	html_template "html/template"
 	io_fs "io/fs"
+	"net/url"
 
 	"github.com/aaronland/go-http-server/handler"
 	"github.com/mitchellh/copystructure"
@@ -59,7 +60,18 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		return nil, fmt.Errorf("Failed to assign flags from environment variables, %w", err)
 	}
 
+	if root_url == "" {
+		root_url = server_uri
+	}
+
+	root_u, err := url.Parse(root_url)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse root_url '%s', %w", root_url, err)
+	}
+
 	uris_table = httpd.DefaultURIs()
+	uris_table.Root = root_u
 
 	t_funcs := html_template.FuncMap{
 		"IsAvailable": sfom_funcs.IsAvailable,

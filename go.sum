@@ -1,3 +1,5 @@
+github.com/aaronland/go-http-rewrite v1.1.0 h1:HhsltNyYRnIz2FR+qANZLx2ykiRuNuNK1JgPonKBLHQ=
+github.com/aaronland/go-http-rewrite v1.1.0/go.mod h1:iA9jQBureJrzO6fTzmRLS+fkbAI1Fna71iTb1hP8n3k=
 github.com/aaronland/go-http-sanitize v0.0.8 h1:RRcwJwZtIb0J6xFPgW8a2OkQhMFG/uXkFFOFkCzMeKY=
 github.com/aaronland/go-http-sanitize v0.0.8/go.mod h1:qUi4rzUPcpMntpUFnHK00yQI5vd/Q7x9MFYwX91/ygI=
 github.com/aaronland/go-http-server v1.4.1 h1:GfrGHF9+aurisbPAVv1SbPhxu+PJppX4Eatig/dE8D4=
@@ -76,6 +78,8 @@ github.com/sfomuseum/go-geojsonld v1.0.0 h1:BkHMEsmbTpDTQu1DClTT4VrNMXnLMPsSdBq8
 github.com/sfomuseum/go-geojsonld v1.0.0/go.mod h1:hluKfABMpnukBEf8qLwuWdwotdYFelMYKxO1njRmxPU=
 github.com/sfomuseum/go-http-auth v0.11.0 h1:4p4SynsSVR+s5tc4L3SAQ5nCaf5VD/331sxR9EFmgyE=
 github.com/sfomuseum/go-http-auth v0.11.0/go.mod h1:m0I60r/aVlWXia43eoZOp/d0u7M7pURgJEYElvVVe98=
+github.com/sfomuseum/go-http-opensearch v0.0.2 h1:smssY9rIOzI6E1CrZjxwM63873vI5WuyW3LgrDsY4cE=
+github.com/sfomuseum/go-http-opensearch v0.0.2/go.mod h1:WHGYbyNDGaOiCDCkDA7LmuNp15bL/ol4O4WoZp8gwWk=
 github.com/sfomuseum/go-template v1.10.0 h1:hMprALSEzckBrJR6Cv3FYSN9qA9EH1uiStVqXuG/vHk=
 github.com/sfomuseum/go-template v1.10.0/go.mod h1:8z9k8QHNrUSoDdjZHfIw0Gnmuq4Cy2ZQ4XgLoqQab/0=
 github.com/sfomuseum/iso8601duration v1.1.0 h1:kMYzbamrZp9dRxi5iFuhjl5CzHXK6s6Bzz/c75wsq8Q=
@@ -126,8 +130,8 @@ github.com/whosonfirst/go-whosonfirst-sources v0.2.0 h1:G5U5lgtNUYHdJloEsI+uqQx5
 github.com/whosonfirst/go-whosonfirst-sources v0.2.0/go.mod h1:oAYirIVWxBmpE4/J0p7kpYqmgtQVDCyff2qJ8JzhdHc=
 github.com/whosonfirst/go-whosonfirst-spelunker v0.0.4 h1:b6YN0JXSCblTJ3BtIkhd8Rn0pVQ8LXzIZwYWZ9zZGjE=
 github.com/whosonfirst/go-whosonfirst-spelunker v0.0.4/go.mod h1:/piw3kZ2BSx320SShlHTPHQkHPJJUUizBBzKmOPaiog=
-github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.8 h1:q6zjHJcR8jn1HP91TdffF6w2MGmgDFVNVSmJZfsdZ7k=
-github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.8/go.mod h1:IxPsWkklZcKfhjT8AKZt1zsaGHmvI2IuUgJ8ap2eyZQ=
+github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.9 h1:T+shkS4Jai4rfdcCebdYDXE3TGi9x6i0Hm5nrkG+iEc=
+github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.9/go.mod h1:5J7/oeIm2ZjgFj+eGIUoLKrcYrycUIRCgScXnAiKSPA=
 github.com/whosonfirst/go-whosonfirst-spr/v2 v2.2.1/go.mod h1:3P6fiSVGtIbM3UcyaVMs4i1N6Hi88GmTsdouuXzlr78=
 github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7 h1:1j4IMuVua4/NhqKm2ke16h2V5Z2XiLoOdXbjDrfZb0E=
 github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7/go.mod h1:I2IqsIutlDrvYp37Xzwk4WGq+m/gLh+gEifiLmH0bac=
@@ -162,6 +166,8 @@ golang.org/x/net v0.0.0-20190620200207-3b0461eec859/go.mod h1:z5CRVTTTmAJ677TzLL
 golang.org/x/net v0.0.0-20200226121028-0de0cce0169b/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/net v0.0.0-20201021035429-f5854403a974/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=
 golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
+golang.org/x/net v0.25.0 h1:d/OCCoBEUq33pjydKrGQhw7IlUPI2Oylr+8qLx49kac=
+golang.org/x/net v0.25.0/go.mod h1:JkAGAh7GEvH74S6FOH42FLoXpXbE/aqXSrIQjXgsiwM=
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
