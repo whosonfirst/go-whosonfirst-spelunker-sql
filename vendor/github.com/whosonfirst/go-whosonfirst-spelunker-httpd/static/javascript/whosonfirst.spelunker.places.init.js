@@ -84,8 +84,22 @@ window.addEventListener("load", function load(event){
 	    map.setView([coords[0][1], coords[0][0]], 12);
 	    break;
 	default:
+
+	    // START OF wrap me in a common function
+	    
 	    var bounds = whosonfirst.spelunker.geojson.derive_bounds(f);
-	    map.fitBounds(bounds);
+	    var sw = bounds[0];
+	    var ne = bounds[1];
+
+	    // TO DO: set zoom based on placetype or mz:min/max_zoom (requires fetching all the records so... maybe not?)	    
+	    if ((sw[0] == ne[0]) && (sw[1] == ne[1])){
+		map.setView(sw, 12);
+	    } else {
+		map.fitBounds(bounds);
+	    }
+
+	    // END OF wrap me in a common function
+	    
 	    break;
     }
     

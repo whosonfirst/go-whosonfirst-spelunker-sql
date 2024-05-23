@@ -79,7 +79,7 @@ window.addEventListener("load", function load(event){
 		whosonfirst.spelunker.leaflet.draw_point(map, f, layer_args);
 		return;
 	    }
-
+	    
 	    var bbox_style = whosonfirst.spelunker.leaflet.styles.bbox();
 
 	    var bbox_layer_args = {
@@ -88,11 +88,13 @@ window.addEventListener("load", function load(event){
 	    }
 	    
 	    whosonfirst.spelunker.leaflet.draw_bbox(map, f, bbox_layer_args);
-	    
+
+	    var pt_handler = whosonfirst.spelunker.leaflet.handlers.point(pt_handler_layer_args);	    
 	    var poly_style = whosonfirst.spelunker.leaflet.styles.consensus_polygon();
 	    
 	    var poly_layer_args = {
 		style: poly_style,
+		pointToLayer: pt_handler,		
 		pane: poly_pane_name,
 	    };
 	    

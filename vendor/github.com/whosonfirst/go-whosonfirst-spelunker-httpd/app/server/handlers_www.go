@@ -8,6 +8,7 @@ import (
 
 	"github.com/sfomuseum/go-http-opensearch"
 	opensearch_http "github.com/sfomuseum/go-http-opensearch/http"
+	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd/templates/javascript"
 	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd/www"
 )
 
@@ -17,6 +18,29 @@ func staticHandlerFunc(ctx context.Context) (http.Handler, error) {
 	fs_handler := http.FileServer(http_fs)
 
 	return http.StripPrefix(run_options.URIs.Static, fs_handler), nil
+}
+
+func urisJSHandlerFunc(ctx context.Context) (http.Handler, error) {
+
+	setupWWWOnce.Do(setupWWW)
+
+	if setupWWWError != nil {
+		slog.Error("Failed to set up common configuration", "error", setupWWWError)
+		return nil, fmt.Errorf("Failed to set up common configuration, %w", setupWWWError)
+	}
+
+	js_templates, err := javascript.LoadTemplates(ctx)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load JavaScript templates, %w", err)
+	}
+
+	opts := &www.URIsJSHandlerOptions{
+		Templates: js_templates,
+		URIs:      uris_table,
+	}
+
+	return www.URIsJSHandler(opts)
 }
 
 func openSearchHandlerFunc(ctx context.Context) (http.Handler, error) {

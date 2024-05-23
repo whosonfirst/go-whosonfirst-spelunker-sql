@@ -99,6 +99,7 @@ github.com/sfomuseum/go-http-opensearch/http
 ## explicit; go 1.18
 github.com/sfomuseum/go-template/funcs
 github.com/sfomuseum/go-template/html
+github.com/sfomuseum/go-template/text
 # github.com/sfomuseum/iso8601duration v1.1.0
 ## explicit; go 1.18
 github.com/sfomuseum/iso8601duration
@@ -152,7 +153,7 @@ github.com/whosonfirst/go-whosonfirst-sources/sources
 github.com/whosonfirst/go-whosonfirst-spelunker
 github.com/whosonfirst/go-whosonfirst-spelunker/app/cli
 github.com/whosonfirst/go-whosonfirst-spelunker/document
-# github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.10
+# github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.11
 ## explicit; go 1.22
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/api
@@ -160,6 +161,7 @@ github.com/whosonfirst/go-whosonfirst-spelunker-httpd/app/server
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/static
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/templates/funcs
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/templates/html
+github.com/whosonfirst/go-whosonfirst-spelunker-httpd/templates/javascript
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/webfinger
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/www
 # github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7

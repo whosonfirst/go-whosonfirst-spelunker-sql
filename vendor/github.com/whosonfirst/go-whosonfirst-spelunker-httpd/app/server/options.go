@@ -71,7 +71,7 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 	}
 
 	uris_table = httpd.DefaultURIs()
-	uris_table.Root = root_u
+	uris_table.RootURL = root_u.String()
 
 	t_funcs := html_template.FuncMap{
 		"IsAvailable": sfom_funcs.IsAvailable,

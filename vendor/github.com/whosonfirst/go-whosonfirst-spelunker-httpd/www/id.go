@@ -67,7 +67,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		req_uri, err, status := httpd.ParseURIFromRequest(req, nil)
 
 		if err != nil {
-			slog.Error("Failed to parse URI from request", "error", err)
+			logger.Error("Failed to parse URI from request", "error", err)
 			http.Error(rsp, spelunker.ErrNotFound.Error(), status)
 			return
 		}
@@ -77,7 +77,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		req_id, err := uri.Id2Fname(req_uri.Id, req_uri.URIArgs)
 
 		if err != nil {
-			slog.Error("Failed to derive request ID", "error", err)
+			logger.Error("Failed to derive request ID", "error", err)
 			http.Error(rsp, spelunker.ErrNotFound.Error(), http.StatusNotFound)
 			return
 		}
@@ -92,7 +92,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		f, err := opts.Spelunker.GetRecordForId(ctx, wof_id, uri_args)
 
 		if err != nil {
-			slog.Error("Failed to get by ID", "error", err)
+			logger.Error("Failed to get by ID", "error", err)
 			http.Error(rsp, spelunker.ErrNotFound.Error(), http.StatusNotFound)
 			return
 		}
@@ -112,7 +112,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		rel_path, err := uri.Id2RelPath(wof_id, req_uri.URIArgs)
 
 		if err != nil {
-			slog.Error("Failed to derive relative path for record", "error", err)
+			logger.Error("Failed to derive relative path for record", "error", err)
 			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -139,7 +139,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 			err = alt_t.Execute(rsp, vars)
 
 			if err != nil {
-				slog.Error("Failed to return ", "error", err)
+				logger.Error("Failed to return ", "error", err)
 				http.Error(rsp, "womp womp", http.StatusInternalServerError)
 			}
 
@@ -149,7 +149,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		count_descendants, err := opts.Spelunker.CountDescendants(ctx, wof_id)
 
 		if err != nil {
-			slog.Error("Failed to count descendants", "error", err)
+			logger.Error("Failed to count descendants", "error", err)
 			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -161,7 +161,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		pt, err := placetypes.GetPlacetypeByName(str_pt.String())
 
 		if err != nil {
-			slog.Error("Failed to load placetype", "placetype", str_pt, "error", err)
+			logger.Error("Failed to load placetype", "placetype", str_pt, "error", err)
 			http.Error(rsp, "Internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -170,6 +170,20 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 			"common",
 			"optional",
 			"common_optional",
+		}
+
+		// If custom placetype assume the most granular placetype for constructing
+		// ordered list from hierarchy.
+
+		if pt.Name == "custom" {
+
+			v, err := placetypes.GetPlacetypeByName("installation")
+
+			if err != nil {
+				logger.Warn("Failed to instantiate 'installation' placetype, %w", err)
+			} else {
+				pt = v
+			}
 		}
 
 		ancestors := placetypes.AncestorsForRoles(pt, roles)
@@ -181,8 +195,6 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 			n := ancestors[i]
 			sorted = append(sorted, n.String())
 		}
-
-		// hierarchies := properties.Hierarchies(f)
 
 		hierarchies := make([]map[string]int64, 0)
 
@@ -284,7 +296,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 		err = t.Execute(rsp, vars)
 
 		if err != nil {
-			slog.Error("Failed to return ", "error", err)
+			logger.Error("Failed to return ", "error", err)
 			http.Error(rsp, "womp womp", http.StatusInternalServerError)
 		}
 

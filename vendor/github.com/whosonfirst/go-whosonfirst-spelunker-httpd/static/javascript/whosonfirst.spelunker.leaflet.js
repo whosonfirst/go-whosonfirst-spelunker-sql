@@ -11,7 +11,7 @@ whosonfirst.spelunker.leaflet = (function(){
 	    layer.addTo(map);
 	    return layer;
 	},
-	
+
 	'draw_poly': function(map, geojson, layer_args){
 	    
 	    var layer = L.geoJson(geojson, layer_args);

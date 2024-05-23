@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 
 	"github.com/aaronland/go-http-server"
 	"github.com/aaronland/go-http-server/handler"
@@ -47,6 +48,12 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, logger *slog.Logger) 
 	// START OF defer loading handlers (and all their dependencies) until they are actually routed to
 	// in case we are running in a "serverless" environment like AWS Lambda
 
+	path_urisjs, err := url.JoinPath(run_options.URIs.Static, "/javascript/whosonfirst.spelunker.uris.js")
+
+	if err != nil {
+		return fmt.Errorf("Failed to construct path for whosonfirst.spelunker.uris.js, %w", err)
+	}
+
 	handlers := map[string]handler.RouteHandlerFunc{
 
 		// WWW/human-readable
@@ -70,6 +77,8 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, logger *slog.Logger) 
 
 		// Static assets
 		run_options.URIs.Static: staticHandlerFunc,
+		// Run-time static assets
+		path_urisjs: urisJSHandlerFunc,
 
 		// API/machine-readable
 		run_options.URIs.ConcordanceNSFaceted:     hasConcordanceFacetedHandlerFunc,
