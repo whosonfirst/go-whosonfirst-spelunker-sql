@@ -190,8 +190,8 @@ func (s *SQLSpelunker) CountDescendants(ctx context.Context, id int64) (int64, e
 
 	var count int64
 
-	q := fmt.Sprintf("SELECT COUNT(id) FROM %s WHERE ancestor_id = ?", tables.ANCESTORS_TABLE_NAME)
-	row := s.db.QueryRowContext(ctx, q, id)
+	q := fmt.Sprintf("SELECT COUNT(id) FROM %s WHERE ancestor_id = ? AND id != ?", tables.ANCESTORS_TABLE_NAME)
+	row := s.db.QueryRowContext(ctx, q, id, id)
 
 	err := row.Scan(&count)
 

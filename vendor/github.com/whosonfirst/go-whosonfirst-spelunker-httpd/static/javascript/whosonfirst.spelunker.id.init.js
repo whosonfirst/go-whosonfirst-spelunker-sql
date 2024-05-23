@@ -246,12 +246,16 @@ window.addEventListener("load", function load(event){
     var is_deprecated = false;    
     var is_superseded = false;
     var is_superseding = false;
+
+    // uuuu is "unknown" (EDTF 2012)
+    // "" is "open (EDTF 2019)
+    // .. is "open" (ETDF 2019)
     
     if ((props["edtf:deprecated"]) && (props["edtf:deprecated"] != "")){
 	is_deprecated = true;
     }
-
-    if ((! props["src:alt_label"]) && (props["edtf:cessation"] != "") && (props["edtf:cessation"] != "uuuu")){
+    
+    if ((props["edtf:cessation"] != "") && (props["edtf:cessation"] != "uuuu") && (props["edtf:cessation"] != "..")){
 	is_ceased = true;
     }
 
