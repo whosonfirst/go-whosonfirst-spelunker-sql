@@ -6,9 +6,11 @@ import (
 	"strings"
 
 	"github.com/aaronland/go-pagination"
+	"github.com/aaronland/go-pagination/countable"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	wof_spr "github.com/whosonfirst/go-whosonfirst-spr/v2"
 	"github.com/whosonfirst/go-whosonfirst-sql/tables"
+	"github.com/whosonfirst/go-whosonfirst-sqlite-spr"
 )
 
 func (s *SQLSpelunker) GetAlternatePlacetypes(ctx context.Context) (*spelunker.Faceting, error) {
@@ -16,7 +18,7 @@ func (s *SQLSpelunker) GetAlternatePlacetypes(ctx context.Context) (*spelunker.F
 	facet_counts := make([]*spelunker.FacetCount, 0)
 
 	// TBD alt files...
-	q := fmt.Sprintf("SELECT placetype, COUNT(id) AS count FROM %s WHERE is_alt=0 GROUP BY placetype ORDER BY count DESC", tables.SPR_TABLE_NAME)
+	q := fmt.Sprintf("SELECT JSON_EXTRACT(geojson.body, '$.properties.wof:placetype_alt') AS placetype_alt, COUNT(id) AS count FROM %s WHERE is_alt=0 GROUP BY placetype_alt ORDER BY count DESC", tables.GEOJSON_TABLE_NAME)
 
 	rows, err := s.db.QueryContext(ctx, q)
 
@@ -49,7 +51,7 @@ func (s *SQLSpelunker) GetAlternatePlacetypes(ctx context.Context) (*spelunker.F
 		return nil, fmt.Errorf("Failed to close results rows, %w", err)
 	}
 
-	f := spelunker.NewFacet("placetype")
+	f := spelunker.NewFacet("placetype_alt")
 
 	faceting := &spelunker.Faceting{
 		Facet:   f,
@@ -110,7 +112,7 @@ func (s *SQLSpelunker) HasAlternatePlacetypeFaceted(ctx context.Context, pt stri
 func (s *SQLSpelunker) hasAlternatePlacetypeQueryWhere(pt string, filters []spelunker.Filter) ([]string, []interface{}, error) {
 
 	where := []string{
-		"placetype = ?",
+		"JSON_EXTRACT(geojson.body, '$.properties.wof:placetype_alt') = ?",
 	}
 
 	args := []interface{}{
@@ -131,12 +133,12 @@ func (s *SQLSpelunker) hasAlternatePlacetypeQueryFacetStatement(ctx context.Cont
 	facet_label := s.facetLabel(facet)
 
 	cols := []string{
-		fmt.Sprintf("%s.%s AS %s", tables.SPR_TABLE_NAME, facet_label, facet),
-		fmt.Sprintf("COUNT(%s.id) AS count", tables.SPR_TABLE_NAME),
+		fmt.Sprintf("%s.%s AS %s", tables.GEOJSON_TABLE_NAME, facet_label, facet),
+		fmt.Sprintf("COUNT(%s.id) AS count", tables.GEOJSON_TABLE_NAME),
 	}
 
 	q := s.hasAlternatePlacetypeQueryStatement(ctx, cols, where)
-	return fmt.Sprintf("%s GROUP BY %s.%s ORDER BY count DESC", q, tables.SPR_TABLE_NAME, facet_label)
+	return fmt.Sprintf("%s GROUP BY %s.%s ORDER BY count DESC", q, tables.GEOJSON_TABLE_NAME, facet_label)
 }
 
 func (s *SQLSpelunker) hasAlternatePlacetypeQueryStatement(ctx context.Context, cols []string, where []string) string {
@@ -144,6 +146,130 @@ func (s *SQLSpelunker) hasAlternatePlacetypeQueryStatement(ctx context.Context, 
 	str_cols := strings.Join(cols, ",")
 	str_where := strings.Join(where, " AND ")
 
-	return fmt.Sprintf("SELECT %s FROM %s WHERE %s", str_cols, tables.SPR_TABLE_NAME, str_where)
+	return fmt.Sprintf("SELECT %s FROM %s WHERE %s", str_cols, tables.GEOJSON_TABLE_NAME, str_where)
 
+}
+
+func (s *SQLSpelunker) queryGeoJSON(ctx context.Context, pg_opts pagination.Options, where string, args ...interface{}) (wof_spr.StandardPlacesResults, pagination.Results, error) {
+
+	if pg_opts != nil {
+		limit, offset := s.deriveLimitOffset(pg_opts)
+		where = fmt.Sprintf("%s LIMIT %d OFFSET %d", where, limit, offset)
+	}
+
+	pg_ch := make(chan pagination.Results)
+	results_ch := make(chan wof_spr.StandardPlacesResults)
+
+	done_ch := make(chan bool)
+	err_ch := make(chan error)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() {
+
+		defer func() {
+			done_ch <- true
+		}()
+
+		count_q := fmt.Sprintf("SELECT %s.id AS id FROM %s WHERE %s", tables.GEOJSON_TABLE_NAME, tables.GEOJSON_TABLE_NAME, where)
+		count, err := s.queryCount(ctx, "id", count_q, args...)
+
+		if err != nil {
+			err_ch <- fmt.Errorf("Failed to derive query count, %w", err)
+			return
+		}
+
+		var pg_results pagination.Results
+		var pg_err error
+
+		if pg_opts != nil {
+			pg_results, pg_err = countable.NewResultsFromCountWithOptions(pg_opts, count)
+		} else {
+			pg_results, pg_err = countable.NewResultsFromCount(count)
+		}
+
+		if pg_err != nil {
+			err_ch <- fmt.Errorf("Failed to derive pagination results, %w", pg_err)
+			return
+		}
+
+		pg_ch <- pg_results
+	}()
+
+	go func() {
+
+		defer func() {
+			done_ch <- true
+		}()
+
+		results_q := fmt.Sprintf("SELECT body FROM ? WHERE ?", tables.GEOJSON_TABLE_NAME, where)
+		rows, err := s.db.QueryContext(ctx, results_q, args...)
+
+		if err != nil {
+			err_ch <- fmt.Errorf("Failed to query where '%s', %w", results_q, err)
+			return
+		}
+
+		results := make([]wof_spr.StandardPlacesResult, 0)
+
+		for rows.Next() {
+
+			select {
+			case <-ctx.Done():
+				break
+			default:
+				// pass
+			}
+
+			var body string
+			err := rows.Scan(&body)
+
+			if err != nil {
+				err_ch <- fmt.Errorf("Failed to read body from row, %w", err)
+				return
+			}
+
+			spr_row, err := wof_spr.WhosOnFirstSPR([]byte(body))
+
+			if err != nil {
+				err_ch <- fmt.Errorf("Failed to create SPR from row, %w", err)
+			}
+
+			results = append(results, spr_row)
+		}
+
+		err = rows.Close()
+
+		if err != nil {
+			err_ch <- fmt.Errorf("Failed to close results rows for descendants, %w", err)
+			return
+		}
+
+		spr_results := &spr.SQLiteResults{
+			Places: results,
+		}
+
+		results_ch <- spr_results
+	}()
+
+	var pg_results pagination.Results
+	var spr_results wof_spr.StandardPlacesResults
+
+	remaining := 2
+
+	for remaining > 0 {
+		select {
+		case <-done_ch:
+			remaining -= 1
+		case r := <-pg_ch:
+			pg_results = r
+		case r := <-results_ch:
+			spr_results = r
+		case err := <-err_ch:
+			return nil, nil, err
+		}
+	}
+
+	return spr_results, pg_results, nil
 }
