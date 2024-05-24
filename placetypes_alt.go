@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"log/slog"
-	
+
 	"github.com/aaronland/go-pagination"
 	"github.com/aaronland/go-pagination/countable"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
@@ -19,10 +18,13 @@ func (s *SQLSpelunker) GetAlternatePlacetypes(ctx context.Context) (*spelunker.F
 	facet_counts := make([]*spelunker.FacetCount, 0)
 
 	// TBD alt files...
-	q := fmt.Sprintf(`SELECT JSON_EXTRACT(geojson.body, '$.properties.wof:placetype_alt') AS placetype_alt, COUNT(id) AS count FROM %s WHERE placetype_alt != "" AND is_alt=0 GROUP BY placetype_alt ORDER BY count DESC`, tables.GEOJSON_TABLE_NAME)
 
-	slog.Info(q)
-	
+	// Note: This query is not "fast". It is likely that we will need to add a "spelunker"
+	// table whose "body" column is a JSON type. Right now I am just trying to make things
+	// work, not make them fast.
+
+	q := fmt.Sprintf(`SELECT json.value AS placetype_alt, COUNT(%s.id) AS count FROM %s, json_each(JSON_EXTRACT(JSON(body), '$.properties.wof:placetype_alt')) json WHERE placetype_alt != "" GROUP BY placetype_alt ORDER BY count DESC`, tables.GEOJSON_TABLE_NAME, tables.GEOJSON_TABLE_NAME)
+
 	rows, err := s.db.QueryContext(ctx, q)
 
 	if err != nil {
@@ -73,7 +75,7 @@ func (s *SQLSpelunker) HasAlternatePlacetype(ctx context.Context, pg_opts pagina
 	}
 
 	str_where := strings.Join(where, " AND ")
-	return s.querySPR(ctx, pg_opts, str_where, args...)
+	return s.queryGeoJSON(ctx, pg_opts, str_where, args...)
 }
 
 func (s *SQLSpelunker) HasAlternatePlacetypeFaceted(ctx context.Context, pt string, filters []spelunker.Filter, facets []*spelunker.Facet) ([]*spelunker.Faceting, error) {
@@ -90,9 +92,7 @@ func (s *SQLSpelunker) HasAlternatePlacetypeFaceted(ctx context.Context, pt stri
 
 	for idx, f := range facets {
 
-		q := s.hasPlacetypeQueryFacetStatement(ctx, f, q_where)
-		// slog.Info("FACET", "q", q, "args", q_args)
-
+		q := s.hasAlternatePlacetypeQueryFacetStatement(ctx, f, q_where)
 		counts, err := s.facetWithQuery(ctx, q, q_args...)
 
 		if err != nil {
@@ -114,8 +114,12 @@ func (s *SQLSpelunker) HasAlternatePlacetypeFaceted(ctx context.Context, pt stri
 
 func (s *SQLSpelunker) hasAlternatePlacetypeQueryWhere(pt string, filters []spelunker.Filter) ([]string, []interface{}, error) {
 
+	// Remember: Just trying to make it work right now, not make it fast.
+	// It is likely that we will need to add a "spelunker" table whose "body" column is a JSON type.
+	// SELECT id FROM geojson WHERE EXISTS (SELECT 1 FROM json_each(JSON_EXTRACT(JSON(body) ,'$.properties.wof:placetype_alt')) WHERE value = "museum");
+
 	where := []string{
-		"JSON_EXTRACT(geojson.body, '$.properties.wof:placetype_alt') = ?",
+		fmt.Sprintf(`EXISTS (SELECT 1 FROM json_each(JSON_EXTRACT(JSON(%s.body) ,'$.properties.wof:placetype_alt')) WHERE value = ?)`, tables.GEOJSON_TABLE_NAME),
 	}
 
 	args := []interface{}{
@@ -133,15 +137,29 @@ func (s *SQLSpelunker) hasAlternatePlacetypeQueryWhere(pt string, filters []spel
 
 func (s *SQLSpelunker) hasAlternatePlacetypeQueryFacetStatement(ctx context.Context, facet *spelunker.Facet, where []string) string {
 
+	// Remember: Not fast yet.
+
+	// SELECT spr.country AS country, COUNT(spr.id) AS count FROM spr JOIN geojson ON spr.id = geojson.id WHERE EXISTS (SELECT 1 FROM json_each(JSON_EXTRACT(JSON(geojson.body) ,'$.properties.wof:placetype_alt'))
+
 	facet_label := s.facetLabel(facet)
 
 	cols := []string{
-		fmt.Sprintf("%s.%s AS %s", tables.GEOJSON_TABLE_NAME, facet_label, facet),
-		fmt.Sprintf("COUNT(%s.id) AS count", tables.GEOJSON_TABLE_NAME),
+		fmt.Sprintf("%s.%s AS %s", tables.SPR_TABLE_NAME, facet_label, facet),
+		fmt.Sprintf("COUNT(%s.id) AS count", tables.SPR_TABLE_NAME),
 	}
 
-	q := s.hasAlternatePlacetypeQueryStatement(ctx, cols, where)
-	return fmt.Sprintf("%s GROUP BY %s.%s ORDER BY count DESC", q, tables.GEOJSON_TABLE_NAME, facet_label)
+	str_cols := strings.Join(cols, ", ")
+	str_where := strings.Join(where, " AND ")
+
+	q := fmt.Sprintf(`SELECT %s FROM %s JOIN %s ON %s.id = %s.id WHERE %s`,
+		str_cols,
+		tables.SPR_TABLE_NAME, tables.GEOJSON_TABLE_NAME,
+		tables.SPR_TABLE_NAME, tables.GEOJSON_TABLE_NAME,
+		str_where,
+	)
+
+	q = fmt.Sprintf("%s GROUP BY %s.%s ORDER BY count DESC", q, tables.SPR_TABLE_NAME, facet_label)
+	return q
 }
 
 func (s *SQLSpelunker) hasAlternatePlacetypeQueryStatement(ctx context.Context, cols []string, where []string) string {
@@ -175,8 +193,12 @@ func (s *SQLSpelunker) queryGeoJSON(ctx context.Context, pg_opts pagination.Opti
 			done_ch <- true
 		}()
 
-		count_q := fmt.Sprintf("SELECT %s.id AS id FROM %s WHERE %s", tables.GEOJSON_TABLE_NAME, tables.GEOJSON_TABLE_NAME, where)
-		count, err := s.queryCount(ctx, "id", count_q, args...)
+		count_q := fmt.Sprintf(`SELECT COUNT(id) FROM %s WHERE %s`, tables.GEOJSON_TABLE_NAME, where)
+
+		row := s.db.QueryRowContext(ctx, count_q, args...)
+
+		var count int64
+		err := row.Scan(&count)
 
 		if err != nil {
 			err_ch <- fmt.Errorf("Failed to derive query count, %w", err)
@@ -206,7 +228,11 @@ func (s *SQLSpelunker) queryGeoJSON(ctx context.Context, pg_opts pagination.Opti
 			done_ch <- true
 		}()
 
-		results_q := fmt.Sprintf("SELECT body FROM ? WHERE ?", tables.GEOJSON_TABLE_NAME, where)
+		// Remember: Not fast yet (see notes above)
+		// TBD: Join on spr.id and geojson.id and just fetch SPR columns rather than the entire feature...
+
+		results_q := fmt.Sprintf("SELECT body FROM %s WHERE %s", tables.GEOJSON_TABLE_NAME, where)
+
 		rows, err := s.db.QueryContext(ctx, results_q, args...)
 
 		if err != nil {
