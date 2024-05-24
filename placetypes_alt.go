@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
-
+	"log/slog"
+	
 	"github.com/aaronland/go-pagination"
 	"github.com/aaronland/go-pagination/countable"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
@@ -18,8 +19,10 @@ func (s *SQLSpelunker) GetAlternatePlacetypes(ctx context.Context) (*spelunker.F
 	facet_counts := make([]*spelunker.FacetCount, 0)
 
 	// TBD alt files...
-	q := fmt.Sprintf("SELECT JSON_EXTRACT(geojson.body, '$.properties.wof:placetype_alt') AS placetype_alt, COUNT(id) AS count FROM %s WHERE is_alt=0 GROUP BY placetype_alt ORDER BY count DESC", tables.GEOJSON_TABLE_NAME)
+	q := fmt.Sprintf(`SELECT JSON_EXTRACT(geojson.body, '$.properties.wof:placetype_alt') AS placetype_alt, COUNT(id) AS count FROM %s WHERE placetype_alt != "" AND is_alt=0 GROUP BY placetype_alt ORDER BY count DESC`, tables.GEOJSON_TABLE_NAME)
 
+	slog.Info(q)
+	
 	rows, err := s.db.QueryContext(ctx, q)
 
 	if err != nil {
