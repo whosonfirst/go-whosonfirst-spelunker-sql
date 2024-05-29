@@ -11,7 +11,7 @@ import (
 	"context"
 	db_sql "database/sql"
 	"fmt"
-	// "log/slog"
+	_ "log/slog"
 	"strings"
 
 	"github.com/aaronland/go-pagination"
@@ -226,21 +226,7 @@ func (s *SQLSpelunker) descendantsQueryWhere(ctx context.Context, id int64, filt
 
 func (s *SQLSpelunker) descendantsQueryColumnsAll(ctx context.Context) []string {
 
-	// START OF put me in a function
-	str_cols := `id, parent_id, name, placetype,
-		inception, cessation,
-		country, repo,
-		latitude, longitude,
-		min_latitude, min_longitude,
-		max_latitude, max_longitude,
-		is_current, is_deprecated, is_ceased,is_superseded, is_superseding,
-		supersedes, superseded_by, belongsto,
-		is_alt, alt_label,
-		lastmodified`
-
-	cols := strings.Split(str_cols, ",")
-	// END OF put me in a function
-
+	cols := s.sprColumns()
 	count_cols := len(cols)
 
 	fq_cols := make([]string, count_cols)
@@ -258,7 +244,12 @@ func (s *SQLSpelunker) descendantsQueryStatement(ctx context.Context, cols []str
 	str_cols := strings.Join(cols, ",")
 	str_where := strings.Join(where, " AND ")
 
-	return fmt.Sprintf("SELECT %s FROM %s JOIN %s ON %s.id = %s.id AND %s", str_cols, tables.SPR_TABLE_NAME, tables.ANCESTORS_TABLE_NAME, tables.SPR_TABLE_NAME, tables.ANCESTORS_TABLE_NAME, str_where)
+	return fmt.Sprintf(`SELECT %s FROM %s JOIN %s ON %s.id = %s.id AND %s`,
+		str_cols,
+		tables.SPR_TABLE_NAME, tables.ANCESTORS_TABLE_NAME,
+		tables.SPR_TABLE_NAME, tables.ANCESTORS_TABLE_NAME,
+		str_where,
+	)
 
 }
 
@@ -275,11 +266,37 @@ func (s *SQLSpelunker) descendantsQueryFacetStatement(ctx context.Context, facet
 
 	facet_label := s.facetLabel(facet)
 
-	cols := []string{
-		fmt.Sprintf("%s.%s AS %s", tables.SPR_TABLE_NAME, facet_label, facet),
-		fmt.Sprintf("COUNT(%s.id) AS count", tables.SPR_TABLE_NAME),
-	}
+	switch facet_label {
+	case "placetype_alt":
 
-	q := s.descendantsQueryStatement(ctx, cols, where)
-	return fmt.Sprintf("%s GROUP BY %s.%s ORDER BY count DESC", q, tables.SPR_TABLE_NAME, facet_label)
+		cols := []string{
+			fmt.Sprintf("json.value AS %s", facet_label),
+			fmt.Sprintf("COUNT(%s.id) AS count", tables.SPELUNKER_TABLE_NAME),
+		}
+
+		str_cols := strings.Join(cols, ", ")
+		str_where := strings.Join(where, ", ")
+
+		q := fmt.Sprintf(`SELECT %s FROM JSON_EACH(JSON_EXTRACT(%s.body, '$.wof:placetype_alt')) json, %s JOIN %s ON %s.id=%s.id WHERE %s`,
+			str_cols,
+			tables.SPELUNKER_TABLE_NAME,
+			tables.SPELUNKER_TABLE_NAME,
+			tables.ANCESTORS_TABLE_NAME,
+			tables.SPELUNKER_TABLE_NAME,
+			tables.ANCESTORS_TABLE_NAME,
+			str_where,
+		)
+
+		return fmt.Sprintf("%s GROUP BY %s ORDER BY count DESC", q, facet_label)
+
+	default:
+
+		cols := []string{
+			fmt.Sprintf("%s.%s AS %s", tables.SPR_TABLE_NAME, facet_label, facet),
+			fmt.Sprintf("COUNT(%s.id) AS count", tables.SPR_TABLE_NAME),
+		}
+
+		q := s.descendantsQueryStatement(ctx, cols, where)
+		return fmt.Sprintf("%s GROUP BY %s.%s ORDER BY count DESC", q, tables.SPR_TABLE_NAME, facet_label)
+	}
 }

@@ -13,6 +13,8 @@ func (s *SQLSpelunker) facetLabel(f *spelunker.Facet) string {
 	var facet_label string
 
 	switch f.Property {
+	case "placetypealt":
+		facet_label = "placetype_alt"
 	case "iscurrent":
 		facet_label = "is_current"
 	case "isdeprecated":
