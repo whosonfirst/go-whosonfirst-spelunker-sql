@@ -23,7 +23,9 @@ func (s *SQLSpelunker) GetAlternatePlacetypes(ctx context.Context) (*spelunker.F
 	// table whose "body" column is a JSON type. Right now I am just trying to make things
 	// work, not make them fast.
 
-	q := fmt.Sprintf(`SELECT json.value AS placetype_alt, COUNT(%s.id) AS count FROM %s, json_each(JSON_EXTRACT(JSON(body), '$.properties.wof:placetype_alt')) json WHERE placetype_alt != "" GROUP BY placetype_alt ORDER BY count DESC`, tables.GEOJSON_TABLE_NAME, tables.GEOJSON_TABLE_NAME)
+	// q := fmt.Sprintf(`SELECT json.value AS placetype_alt, COUNT(%s.id) AS count FROM %s, json_each(JSON_EXTRACT(JSON(body), '$.properties.wof:placetype_alt')) json WHERE placetype_alt != "" GROUP BY placetype_alt ORDER BY count DESC`, tables.GEOJSON_TABLE_NAME, tables.GEOJSON_TABLE_NAME)
+
+	q := fmt.Sprintf(`SELECT json.value AS placetype_alt, COUNT(%s.id) AS count FROM %s, json_each(JSON_EXTRACT(body, '$.wof:placetype_alt')) json WHERE placetype_alt != "" GROUP BY placetype_alt ORDER BY count DESC`, tables.SPELUNKER_TABLE_NAME, tables.SPELUNKER_TABLE_NAME)
 
 	rows, err := s.db.QueryContext(ctx, q)
 
@@ -119,7 +121,8 @@ func (s *SQLSpelunker) hasAlternatePlacetypeQueryWhere(pt string, filters []spel
 	// SELECT id FROM geojson WHERE EXISTS (SELECT 1 FROM json_each(JSON_EXTRACT(JSON(body) ,'$.properties.wof:placetype_alt')) WHERE value = "museum");
 
 	where := []string{
-		fmt.Sprintf(`EXISTS (SELECT 1 FROM json_each(JSON_EXTRACT(JSON(%s.body) ,'$.properties.wof:placetype_alt')) WHERE value = ?)`, tables.GEOJSON_TABLE_NAME),
+		// fmt.Sprintf(`EXISTS (SELECT 1 FROM json_each(JSON_EXTRACT(JSON(%s.body) ,'$.properties.wof:placetype_alt')) WHERE value = ?)`, tables.GEOJSON_TABLE_NAME),
+		fmt.Sprintf(`EXISTS (SELECT 1 FROM json_each(JSON_EXTRACT(%s.body ,'$.wof:placetype_alt')) WHERE value = ?)`, tables.SPELUNKER_TABLE_NAME),
 	}
 
 	args := []interface{}{
@@ -153,8 +156,10 @@ func (s *SQLSpelunker) hasAlternatePlacetypeQueryFacetStatement(ctx context.Cont
 
 	q := fmt.Sprintf(`SELECT %s FROM %s JOIN %s ON %s.id = %s.id WHERE %s`,
 		str_cols,
-		tables.SPR_TABLE_NAME, tables.GEOJSON_TABLE_NAME,
-		tables.SPR_TABLE_NAME, tables.GEOJSON_TABLE_NAME,
+		// tables.SPR_TABLE_NAME, tables.GEOJSON_TABLE_NAME,
+		// tables.SPR_TABLE_NAME, tables.GEOJSON_TABLE_NAME,
+		tables.SPR_TABLE_NAME, tables.SPELUNKER_TABLE_NAME,
+		tables.SPR_TABLE_NAME, tables.SPELUNKER_TABLE_NAME,
 		str_where,
 	)
 
@@ -167,7 +172,8 @@ func (s *SQLSpelunker) hasAlternatePlacetypeQueryStatement(ctx context.Context, 
 	str_cols := strings.Join(cols, ",")
 	str_where := strings.Join(where, " AND ")
 
-	return fmt.Sprintf("SELECT %s FROM %s WHERE %s", str_cols, tables.GEOJSON_TABLE_NAME, str_where)
+	// return fmt.Sprintf("SELECT %s FROM %s WHERE %s", str_cols, tables.GEOJSON_TABLE_NAME, str_where)
+	return fmt.Sprintf("SELECT %s FROM %s WHERE %s", str_cols, tables.SPELUNKER_TABLE_NAME, str_where)
 
 }
 
@@ -193,7 +199,8 @@ func (s *SQLSpelunker) queryGeoJSON(ctx context.Context, pg_opts pagination.Opti
 			done_ch <- true
 		}()
 
-		count_q := fmt.Sprintf(`SELECT COUNT(id) FROM %s WHERE %s`, tables.GEOJSON_TABLE_NAME, where)
+		// count_q := fmt.Sprintf(`SELECT COUNT(id) FROM %s WHERE %s`, tables.GEOJSON_TABLE_NAME, where)
+		count_q := fmt.Sprintf(`SELECT COUNT(id) FROM %s WHERE %s`, tables.SPELUNKER_TABLE_NAME, where)
 
 		row := s.db.QueryRowContext(ctx, count_q, args...)
 
@@ -231,7 +238,12 @@ func (s *SQLSpelunker) queryGeoJSON(ctx context.Context, pg_opts pagination.Opti
 		// Remember: Not fast yet (see notes above)
 		// TBD: Join on spr.id and geojson.id and just fetch SPR columns rather than the entire feature...
 
-		results_q := fmt.Sprintf("SELECT body FROM %s WHERE %s", tables.GEOJSON_TABLE_NAME, where)
+		// results_q := fmt.Sprintf("SELECT body FROM %s WHERE %s", tables.GEOJSON_TABLE_NAME, where)
+
+		spr_cols := s.sprColumnsWithTableName(tables.SPR_TABLE_NAME)
+		str_cols := strings.Join(spr_cols, ", ")
+
+		results_q := fmt.Sprintf("SELECT %s FROM %s JOIN %s ON %s.id = %s.id WHERE %s", str_cols, tables.SPR_TABLE_NAME, tables.SPELUNKER_TABLE_NAME, tables.SPR_TABLE_NAME, tables.SPELUNKER_TABLE_NAME, where)
 
 		rows, err := s.db.QueryContext(ctx, results_q, args...)
 
@@ -251,18 +263,11 @@ func (s *SQLSpelunker) queryGeoJSON(ctx context.Context, pg_opts pagination.Opti
 				// pass
 			}
 
-			var body string
-			err := rows.Scan(&body)
+			spr_row, err := spr.RetrieveSPRWithRows(ctx, rows)
 
 			if err != nil {
-				err_ch <- fmt.Errorf("Failed to read body from row, %w", err)
+				err_ch <- fmt.Errorf("Failed to derive SPR from row, %w", err)
 				return
-			}
-
-			spr_row, err := wof_spr.WhosOnFirstSPR([]byte(body))
-
-			if err != nil {
-				err_ch <- fmt.Errorf("Failed to create SPR from row, %w", err)
 			}
 
 			results = append(results, spr_row)
@@ -280,6 +285,49 @@ func (s *SQLSpelunker) queryGeoJSON(ctx context.Context, pg_opts pagination.Opti
 		}
 
 		results_ch <- spr_results
+
+		/*
+			results := make([]wof_spr.StandardPlacesResult, 0)
+
+			for rows.Next() {
+
+				select {
+				case <-ctx.Done():
+					break
+				default:
+					// pass
+				}
+
+				var body string
+				err := rows.Scan(&body)
+
+				if err != nil {
+					err_ch <- fmt.Errorf("Failed to read body from row, %w", err)
+					return
+				}
+
+				spr_row, err := wof_spr.WhosOnFirstSPR([]byte(body))
+
+				if err != nil {
+					err_ch <- fmt.Errorf("Failed to create SPR from row, %w", err)
+				}
+
+				results = append(results, spr_row)
+			}
+
+			err = rows.Close()
+
+			if err != nil {
+				err_ch <- fmt.Errorf("Failed to close results rows for descendants, %w", err)
+				return
+			}
+
+			spr_results := &spr.SQLiteResults{
+				Places: results,
+			}
+
+			results_ch <- spr_results
+		*/
 	}()
 
 	var pg_results pagination.Results
