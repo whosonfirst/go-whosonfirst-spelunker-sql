@@ -23,6 +23,57 @@ func (s *SQLSpelunker) VisitingNullIsland(ctx context.Context, pg_opts paginatio
 	return s.querySPR(ctx, pg_opts, str_where, args...)
 }
 
+func (s *SQLSpelunker) visitingNullIslandQueryWhere(filters []spelunker.Filter) ([]string, []interface{}, error) {
+
+	where := []string{
+		"latitude = ?",
+		"longitude = ?",
+	}
+
+	args := []interface{}{
+		0.0,
+		0.0,
+	}
+
+	where, args, err := s.assignFilters(where, args, filters)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return where, args, nil
+}
+
+func (s *SQLSpelunker) visitingNullIslandQueryStatement(ctx context.Context, cols []string, where []string) string {
+
+	str_cols := strings.Join(cols, ",")
+	str_where := strings.Join(where, " AND ")
+
+	return fmt.Sprintf("SELECT %s FROM %s WHERE %s", str_cols, tables.SPR_TABLE_NAME, str_where)
+}
+
+func (s *SQLSpelunker) visitingNullIslandQueryFacetStatement(ctx context.Context, facet *spelunker.Facet, where []string) string {
+
+	facet_label := s.facetLabel(facet)
+
+	switch facet_label {
+	case "placetype_alt":
+
+		// FIX ME
+		return ""
+
+	default:
+
+		cols := []string{
+			fmt.Sprintf("%s.%s AS %s", tables.SPR_TABLE_NAME, facet_label, facet),
+			fmt.Sprintf("COUNT(%s.id) AS count", tables.SPR_TABLE_NAME),
+		}
+
+		q := s.visitingNullIslandQueryStatement(ctx, cols, where)
+		return fmt.Sprintf("%s GROUP BY %s.%s ORDER BY count DESC", q, tables.SPR_TABLE_NAME, facet_label)
+	}
+}
+
 func (s *SQLSpelunker) VisitingNullIslandFaceted(ctx context.Context, filters []spelunker.Filter, facets []*spelunker.Facet) ([]*spelunker.Faceting, error) {
 
 	q_where, q_args, err := s.visitingNullIslandQueryWhere(filters)
@@ -57,47 +108,4 @@ func (s *SQLSpelunker) VisitingNullIslandFaceted(ctx context.Context, filters []
 	// END OF do this in go routines
 
 	return results, nil
-}
-
-func (s *SQLSpelunker) visitingNullIslandQueryWhere(filters []spelunker.Filter) ([]string, []interface{}, error) {
-
-	where := []string{
-		"latitude = ?",
-		"longitude = ?",
-	}
-
-	args := []interface{}{
-		0.0,
-		0.0,
-	}
-
-	where, args, err := s.assignFilters(where, args, filters)
-
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return where, args, nil
-}
-
-func (s *SQLSpelunker) visitingNullIslandQueryFacetStatement(ctx context.Context, facet *spelunker.Facet, where []string) string {
-
-	facet_label := s.facetLabel(facet)
-
-	cols := []string{
-		fmt.Sprintf("%s.%s AS %s", tables.SPR_TABLE_NAME, facet_label, facet),
-		fmt.Sprintf("COUNT(%s.id) AS count", tables.SPR_TABLE_NAME),
-	}
-
-	q := s.visitingNullIslandQueryStatement(ctx, cols, where)
-	return fmt.Sprintf("%s GROUP BY %s.%s ORDER BY count DESC", q, tables.SPR_TABLE_NAME, facet_label)
-}
-
-func (s *SQLSpelunker) visitingNullIslandQueryStatement(ctx context.Context, cols []string, where []string) string {
-
-	str_cols := strings.Join(cols, ",")
-	str_where := strings.Join(where, " AND ")
-
-	return fmt.Sprintf("SELECT %s FROM %s WHERE %s", str_cols, tables.SPR_TABLE_NAME, str_where)
-
 }
