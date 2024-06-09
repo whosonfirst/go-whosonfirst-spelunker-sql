@@ -3,7 +3,7 @@ package sql
 import (
 	"context"
 	"fmt"
-	_ "log/slog"
+	"log/slog"
 	"strings"
 
 	"github.com/aaronland/go-pagination"
@@ -225,20 +225,47 @@ func (s *SQLSpelunker) HasConcordanceFaceted(ctx context.Context, namespace stri
 
 		facet_label := s.facetLabel(f)
 
-		q := fmt.Sprintf("SELECT %s.%s AS %s, COUNT(%s.id) AS count FROM %s LEFT JOIN %s ON %s.id = %s.id WHERE %s GROUP BY %s ORDER BY count DESC",
-			tables.SPR_TABLE_NAME,
-			facet_label,
-			facet_label,
-			tables.SPR_TABLE_NAME,
-			tables.SPR_TABLE_NAME,
-			tables.CONCORDANCES_TABLE_NAME,
-			tables.SPR_TABLE_NAME,
-			tables.CONCORDANCES_TABLE_NAME,
-			str_where,
-			facet_label,
-		)
+		var q string
 
-		// slog.Info("QUERY", "q", q, "args", args)
+		switch facet_label {
+		case "placetype_alt":
+
+			cols := []string{
+				fmt.Sprintf("json.value AS %s", facet_label),
+				fmt.Sprintf("COUNT(%s.id) AS count", tables.SPELUNKER_TABLE_NAME),
+			}
+
+			str_cols := strings.Join(cols, ", ")
+			str_where := strings.Join(where, ", ")
+
+			q = fmt.Sprintf(`SELECT %s FROM JSON_EACH(JSON_EXTRACT(%s.body, '$.wof:placetype_alt')) json, %s JOIN %s ON %s.id=%s.id WHERE %s GROUP BY %s ORDER BY count DESC`,
+				str_cols,
+				tables.SPELUNKER_TABLE_NAME,
+				tables.SPELUNKER_TABLE_NAME,
+				tables.CONCORDANCES_TABLE_NAME,
+				tables.SPELUNKER_TABLE_NAME,
+				tables.CONCORDANCES_TABLE_NAME,
+				str_where,
+				facet_label,
+			)
+
+		default:
+
+			q = fmt.Sprintf("SELECT %s.%s AS %s, COUNT(%s.id) AS count FROM %s LEFT JOIN %s ON %s.id = %s.id WHERE %s GROUP BY %s ORDER BY count DESC",
+				tables.SPR_TABLE_NAME,
+				facet_label,
+				facet_label,
+				tables.SPR_TABLE_NAME,
+				tables.SPR_TABLE_NAME,
+				tables.CONCORDANCES_TABLE_NAME,
+				tables.SPR_TABLE_NAME,
+				tables.CONCORDANCES_TABLE_NAME,
+				str_where,
+				facet_label,
+			)
+		}
+
+		slog.Info("QUERY", "q", q, "args", args)
 
 		rows, err := s.db.QueryContext(ctx, q, args...)
 
