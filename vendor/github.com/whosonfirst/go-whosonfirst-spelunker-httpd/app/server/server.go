@@ -56,6 +56,9 @@ func RunWithOptions(ctx context.Context, opts *RunOptions, logger *slog.Logger) 
 
 	handlers := map[string]handler.RouteHandlerFunc{
 
+		// Common handler things
+		"/robots.txt": robotsTxtHandlerFunc,
+
 		// WWW/human-readable
 		run_options.URIs.Placetypes:        placetypesHandlerFunc,
 		run_options.URIs.Placetype:         hasPlacetypeHandlerFunc,

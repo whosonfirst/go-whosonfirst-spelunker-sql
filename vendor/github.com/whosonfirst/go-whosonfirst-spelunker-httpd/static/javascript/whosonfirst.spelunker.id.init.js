@@ -268,7 +268,9 @@ window.addEventListener("load", function load(event){
 	span.appendChild(document.createTextNode("This record is deprecated. "));
 	map_wrapper.appendChild(span);
 
-	document.querySelector("#writefield-link").style.display = "none";
+	// https://github.com/whosonfirst/go-whosonfirst-spelunker-httpd/issues/43
+	// document.querySelector("#writefield-link").style.display = "none";
+	
     } else if (is_ceased){
 	var el = document.createTextNode("This record is ceased. ");
 	map_wrapper.appendChild(el);

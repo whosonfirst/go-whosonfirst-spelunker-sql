@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/whosonfirst/go-whosonfirst-sources"
@@ -44,4 +45,27 @@ func AppendPagination(uri string, k string, v any) string {
 
 	u.RawQuery = q.Encode()
 	return u.String()
+}
+
+func IsAPlacetype(pt string) string {
+
+	if pt == "custom" {
+		return "a custom placetype"
+	}
+
+	// https://github.com/whosonfirst/go-whosonfirst-spelunker-httpd/issues/46
+
+	vowels := []string{
+		"a", "e", "i", "o", "u",
+	}
+
+	first := pt[0]
+
+	if slices.Contains(vowels, string(first)) {
+		return fmt.Sprintf("an %s", pt)
+	} else {
+		return fmt.Sprintf("a %s", pt)
+	}
+
+	return pt
 }

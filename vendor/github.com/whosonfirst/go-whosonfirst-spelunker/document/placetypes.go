@@ -49,8 +49,8 @@ func AppendPlacetypeDetails(ctx context.Context, body []byte) ([]byte, error) {
 
 	alt_rsp := root.Get("wof:placetype_alt")
 
-	if alt_rsp.Exists() {
-		placetype_names = append(placetype_names, alt_rsp.String())
+	for _, a := range alt_rsp.Array(){
+		placetype_names = append(placetype_names, a.String())
 	}
 
 	details := map[string]interface{}{

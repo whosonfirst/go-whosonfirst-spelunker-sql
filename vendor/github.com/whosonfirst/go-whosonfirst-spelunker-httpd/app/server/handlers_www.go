@@ -9,8 +9,25 @@ import (
 	"github.com/sfomuseum/go-http-opensearch"
 	opensearch_http "github.com/sfomuseum/go-http-opensearch/http"
 	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd/templates/javascript"
+	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd/templates/text"
 	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd/www"
 )
+
+func robotsTxtHandlerFunc(ctx context.Context) (http.Handler, error) {
+
+	t, err := text.LoadTemplates(ctx)
+
+	if err != nil {
+		slog.Error("Failed to load text templates", "error", err)
+		return nil, fmt.Errorf("Failed to load templates, %w", err)
+	}
+
+	opts := &www.RobotsTxtHandlerOptions{
+		Templates: t,
+	}
+
+	return www.RobotsTxtHandler(opts)
+}
 
 func staticHandlerFunc(ctx context.Context) (http.Handler, error) {
 

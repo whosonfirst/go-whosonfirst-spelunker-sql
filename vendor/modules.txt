@@ -4,7 +4,7 @@ github.com/aaronland/go-http-rewrite
 # github.com/aaronland/go-http-sanitize v0.0.8
 ## explicit; go 1.12
 github.com/aaronland/go-http-sanitize
-# github.com/aaronland/go-http-server v1.4.1
+# github.com/aaronland/go-http-server v1.5.0
 ## explicit; go 1.22
 github.com/aaronland/go-http-server
 github.com/aaronland/go-http-server/handler
@@ -26,7 +26,7 @@ github.com/aaronland/go-sqlite/database
 # github.com/akrylysov/algnhsa v1.1.0
 ## explicit; go 1.18
 github.com/akrylysov/algnhsa
-# github.com/aws/aws-lambda-go v1.46.0
+# github.com/aws/aws-lambda-go v1.47.0
 ## explicit; go 1.18
 github.com/aws/aws-lambda-go/events
 github.com/aws/aws-lambda-go/lambda
@@ -49,7 +49,7 @@ github.com/hashicorp/go-multierror
 # github.com/jtacoma/uritemplates v1.0.0
 ## explicit
 github.com/jtacoma/uritemplates
-# github.com/mattn/go-sqlite3 v1.14.22
+# github.com/mattn/go-sqlite3 v1.14.24
 ## explicit; go 1.19
 github.com/mattn/go-sqlite3
 # github.com/mitchellh/copystructure v1.2.0
@@ -66,11 +66,11 @@ github.com/paulmach/go.geojson
 github.com/paulmach/orb
 github.com/paulmach/orb/geojson
 github.com/paulmach/orb/project
-# github.com/rs/cors v1.11.0
+# github.com/rs/cors v1.11.1
 ## explicit; go 1.13
 github.com/rs/cors
 github.com/rs/cors/internal
-# github.com/sfomuseum/go-edtf v1.1.1
+# github.com/sfomuseum/go-edtf v1.2.1
 ## explicit; go 1.12
 github.com/sfomuseum/go-edtf
 github.com/sfomuseum/go-edtf/calendar
@@ -88,15 +88,15 @@ github.com/sfomuseum/go-flags/flagset
 # github.com/sfomuseum/go-geojsonld v1.0.0
 ## explicit; go 1.13
 github.com/sfomuseum/go-geojsonld
-# github.com/sfomuseum/go-http-auth v0.11.0
+# github.com/sfomuseum/go-http-auth v0.12.0
 ## explicit; go 1.18
 github.com/sfomuseum/go-http-auth
 # github.com/sfomuseum/go-http-opensearch v0.0.2
 ## explicit; go 1.22
 github.com/sfomuseum/go-http-opensearch
 github.com/sfomuseum/go-http-opensearch/http
-# github.com/sfomuseum/go-template v1.10.0
-## explicit; go 1.18
+# github.com/sfomuseum/go-template v1.10.1
+## explicit; go 1.22
 github.com/sfomuseum/go-template/funcs
 github.com/sfomuseum/go-template/html
 github.com/sfomuseum/go-template/text
@@ -108,7 +108,7 @@ github.com/sfomuseum/iso8601duration
 github.com/skip2/go-qrcode
 github.com/skip2/go-qrcode/bitset
 github.com/skip2/go-qrcode/reedsolomon
-# github.com/tidwall/gjson v1.17.1
+# github.com/tidwall/gjson v1.18.0
 ## explicit; go 1.12
 github.com/tidwall/gjson
 # github.com/tidwall/match v1.1.1
@@ -141,20 +141,20 @@ github.com/whosonfirst/go-whosonfirst-feature/properties
 ## explicit; go 1.18
 github.com/whosonfirst/go-whosonfirst-flags
 github.com/whosonfirst/go-whosonfirst-flags/existential
-# github.com/whosonfirst/go-whosonfirst-placetypes v0.7.2
+# github.com/whosonfirst/go-whosonfirst-placetypes v0.7.3
 ## explicit; go 1.18
 github.com/whosonfirst/go-whosonfirst-placetypes
 # github.com/whosonfirst/go-whosonfirst-sources v0.2.0
 ## explicit; go 1.18
 github.com/whosonfirst/go-whosonfirst-sources
 github.com/whosonfirst/go-whosonfirst-sources/sources
-# github.com/whosonfirst/go-whosonfirst-spelunker v0.0.4
-## explicit; go 1.22
+# github.com/whosonfirst/go-whosonfirst-spelunker v0.0.6
+## explicit; go 1.24.0
 github.com/whosonfirst/go-whosonfirst-spelunker
 github.com/whosonfirst/go-whosonfirst-spelunker/app/cli
 github.com/whosonfirst/go-whosonfirst-spelunker/document
-# github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.12
-## explicit; go 1.22
+# github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.16
+## explicit; go 1.24.0
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/api
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/app/server
@@ -162,6 +162,7 @@ github.com/whosonfirst/go-whosonfirst-spelunker-httpd/static
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/templates/funcs
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/templates/html
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/templates/javascript
+github.com/whosonfirst/go-whosonfirst-spelunker-httpd/templates/text
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/webfinger
 github.com/whosonfirst/go-whosonfirst-spelunker-httpd/www
 # github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7
@@ -189,12 +190,12 @@ go.mongodb.org/mongo-driver/bson/bsonrw
 go.mongodb.org/mongo-driver/bson/bsontype
 go.mongodb.org/mongo-driver/bson/primitive
 go.mongodb.org/mongo-driver/x/bsonx/bsoncore
-# golang.org/x/net v0.25.0
-## explicit; go 1.18
+# golang.org/x/net v0.36.0
+## explicit; go 1.23.0
 golang.org/x/net/html
 golang.org/x/net/html/atom
-# golang.org/x/text v0.15.0
-## explicit; go 1.18
+# golang.org/x/text v0.23.0
+## explicit; go 1.23.0
 golang.org/x/text/feature/plural
 golang.org/x/text/internal
 golang.org/x/text/internal/catmsg

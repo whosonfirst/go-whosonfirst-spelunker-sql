@@ -90,6 +90,7 @@ func RunOptionsFromFlagSet(ctx context.Context, fs *flag.FlagSet) (*RunOptions, 
 		"NameForSource":    wof_funcs.NameForSource,
 		"FormatNumber":     wof_funcs.FormatNumber,
 		"AppendPagination": wof_funcs.AppendPagination,
+		"IsAPlacetype":     wof_funcs.IsAPlacetype,
 	}
 
 	opts := &RunOptions{

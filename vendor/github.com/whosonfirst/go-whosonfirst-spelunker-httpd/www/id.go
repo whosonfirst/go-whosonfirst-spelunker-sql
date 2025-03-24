@@ -12,6 +12,7 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-placetypes"
 	"github.com/whosonfirst/go-whosonfirst-spelunker"
 	"github.com/whosonfirst/go-whosonfirst-spelunker-httpd"
+	wof_funcs "github.com/whosonfirst/go-whosonfirst-spelunker-httpd/templates/funcs"
 	"github.com/whosonfirst/go-whosonfirst-uri"
 )
 
@@ -246,15 +247,15 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 
 		// START OF put me in a function or something...
 
+		is_pt := wof_funcs.IsAPlacetype(str_pt.String())
+
 		var og_desc string
 
 		switch str_pt.String() {
-		case "continent", "planet":
-			og_desc = fmt.Sprintf("%s (%d) is a %s", wof_name, wof_id, str_pt.String())
-		case "empire", "ocean":
-			og_desc = fmt.Sprintf("%s (%d) is an %s", wof_name, wof_id, str_pt.String())
+		case "continent", "planet", "empire", "ocean":
+			og_desc = fmt.Sprintf("%s (%d) is %s", wof_name, wof_id, is_pt)
 		case "country":
-			og_desc = fmt.Sprintf("%s (%d) is a %s :flag-%s:", wof_name, wof_id, str_pt.String(), strings.ToLower(wof_country))
+			og_desc = fmt.Sprintf("%s (%d) is %s :flag-%s:", wof_name, wof_id, is_pt, strings.ToLower(wof_country))
 		default:
 
 			var og_country string
@@ -266,7 +267,7 @@ func IdHandler(opts *IdHandlerOptions) (http.Handler, error) {
 				og_country = country_name
 			}
 
-			og_desc = fmt.Sprintf("%s (%d) is a %s in %s :flag-%s:", wof_name, wof_id, str_pt.String(), og_country, strings.ToLower(wof_country))
+			og_desc = fmt.Sprintf("%s (%d) is %s in %s :flag-%s:", wof_name, wof_id, is_pt, og_country, strings.ToLower(wof_country))
 		}
 
 		// END OF put me in a function or something...
