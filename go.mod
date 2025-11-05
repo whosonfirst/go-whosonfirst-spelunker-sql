@@ -8,7 +8,7 @@ require (
 	github.com/whosonfirst/go-whosonfirst-database v0.1.0
 	github.com/whosonfirst/go-whosonfirst-placetypes v0.9.0
 	github.com/whosonfirst/go-whosonfirst-spelunker v0.0.7
-	github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.17
+	github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.18
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.8
 	github.com/whosonfirst/go-whosonfirst-sqlite-spr v0.3.3
 	github.com/whosonfirst/go-whosonfirst-uri v1.3.0
