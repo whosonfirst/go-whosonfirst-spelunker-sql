@@ -5,10 +5,10 @@ go 1.25.0
 require (
 	github.com/aaronland/go-pagination v0.3.0
 	github.com/mattn/go-sqlite3 v1.14.32
-	github.com/whosonfirst/go-whosonfirst-database v0.1.0
+	github.com/whosonfirst/go-whosonfirst-database v0.3.1
 	github.com/whosonfirst/go-whosonfirst-placetypes v0.9.0
 	github.com/whosonfirst/go-whosonfirst-spelunker v0.0.7
-	github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.18
+	github.com/whosonfirst/go-whosonfirst-spelunker-httpd v0.0.20
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.8
 	github.com/whosonfirst/go-whosonfirst-sqlite-spr v0.3.3
 	github.com/whosonfirst/go-whosonfirst-uri v1.3.0
@@ -64,9 +64,9 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/paulmach/go.geojson v1.4.0 // indirect
-	github.com/paulmach/orb v0.11.1 // indirect
+	github.com/paulmach/orb v0.12.0 // indirect
 	github.com/rs/cors v1.11.1 // indirect
-	github.com/sfomuseum/go-database v0.0.15 // indirect
+	github.com/sfomuseum/go-database v0.0.17 // indirect
 	github.com/sfomuseum/go-edtf v1.2.1 // indirect
 	github.com/sfomuseum/go-flags v0.12.1 // indirect
 	github.com/sfomuseum/go-geojsonld v1.0.0 // indirect
