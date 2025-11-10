@@ -16,6 +16,6 @@ func main() {
 	err := server.Run(ctx)
 
 	if err != nil {
-		log.Fatalf("Failed to run server, %v")
+		log.Fatalf("Failed to run server, %v", err)
 	}
 }
