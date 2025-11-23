@@ -2,13 +2,9 @@
 
 Go package implementing the `whosonfirst/go-whosonfirst-spelunker.Spelunker` interface for use with `database/sql` backed databases.
 
-## Documentation
+## Deprecation notice
 
-Documentation is incompete at this time. For starters consult the (also incomplete) documentation in the [whosonfirst/go-whosonfirst-spelunker](https://github.com/whosonfirst/go-whosonfirst-spelunker) package.
-
-## Important
-
-This is work in progress and you should expect things to change, break or simply not work yet.
+This package has been deprecated and superseded by the [whosonfirst/spelunker](https://github.com/whosonfirst/spelunker) package.
 
 ## Indexing
 
